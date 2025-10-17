@@ -3,6 +3,8 @@
 import { toast } from "react-toastify";
 import { FormEvent, useState } from "react";
 import authenticate from "@/app/auth/action";
+import Image from "next/image";
+import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -10,10 +12,6 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-
-    // if (selectedBranch) {
-    //   localStorage.setItem("currentBranch", selectedBranch);
-    // }
 
     setLoading(true);
 
@@ -33,17 +31,9 @@ export default function LoginPage() {
   }
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-50">
-        <body class="h-full">
-        ```
-      */}
       <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <img src="/plenitude.jpg" alt="Plenitude" width={700} height={380} />
+          <Logo />
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px] shadow-2xl">

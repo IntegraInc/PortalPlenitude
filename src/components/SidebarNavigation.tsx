@@ -42,7 +42,7 @@ export default function SidebarNavigation() {
     <div className="relative flex w-64 flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center">
-        <img src="/plenitude.jpg" alt="Pneus" width={700} height={380} />
+        <img src="/plenitude.jpg" alt="Plenitude" width={700} height={380} />
       </div>
 
       {/* Navegação */}
