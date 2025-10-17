@@ -44,7 +44,7 @@ export default function LoginPage() {
                   htmlFor="loginInput"
                   className="block text-sm/6 font-medium text-gray-900"
                 >
-                  Email
+                  Login
                 </label>
                 <div className="mt-2">
                   <input
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 <button
                   disabled={loading}
                   // type="submit"
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer"
                 >
                   Entrar
                 </button>

@@ -15,24 +15,25 @@ const navigation = [
     name: "Tela inicial",
     href: "/",
     icon: HomeIcon,
+    disabled: false,
   },
   {
     name: "Análise de Reposição",
     href: "/analisereposicao",
     icon: ChartBarSquareIcon,
+    disabled: false,
   },
   {
     name: "Tabela de Preço",
     href: "/tabelapreco",
     icon: FolderIcon,
+    disabled: true, // 🚫 Desabilitado por enquanto
   },
 ];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
-
-// 🔥 Função para apagar cookie no client
 
 export default function SidebarNavigation() {
   const pathname = usePathname();
@@ -57,26 +58,41 @@ export default function SidebarNavigation() {
 
                 return (
                   <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={classNames(
-                        isActive
-                          ? "bg-gray-50 text-indigo-600"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                        "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-colors"
-                      )}
-                    >
-                      <item.icon
-                        aria-hidden="true"
+                    {item.disabled ? (
+                      <div
+                        className={classNames(
+                          "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed opacity-50"
+                        )}
+                        title="Em breve"
+                      >
+                        <item.icon
+                          aria-hidden="true"
+                          className="h-6 w-6 shrink-0 text-gray-300"
+                        />
+                        {item.name}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
                         className={classNames(
                           isActive
-                            ? "text-indigo-600"
-                            : "text-gray-400 group-hover:text-indigo-600",
-                          "h-6 w-6 shrink-0"
+                            ? "bg-gray-50 text-indigo-600"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                          "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-colors"
                         )}
-                      />
-                      {item.name}
-                    </Link>
+                      >
+                        <item.icon
+                          aria-hidden="true"
+                          className={classNames(
+                            isActive
+                              ? "text-indigo-600"
+                              : "text-gray-400 group-hover:text-indigo-600",
+                            "h-6 w-6 shrink-0"
+                          )}
+                        />
+                        {item.name}
+                      </Link>
+                    )}
                   </li>
                 );
               })}
@@ -86,6 +102,7 @@ export default function SidebarNavigation() {
                 <button
                   onClick={() => {
                     DestroyCookies();
+                    router.push("/login");
                   }}
                   className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
                 >
