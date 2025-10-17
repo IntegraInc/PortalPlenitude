@@ -1,193 +1,210 @@
-import { FiltersResponse } from "@/app/types/filterTypes";
-import { SupplierCombobox } from "./combobox/SupplierCombobox";
+"use client";
 
-const transactions = [
-  {
-    id: "AAPS0L",
-    company: "Chase & Co.",
-    share: "CAC",
-    commission: "+$4.37",
-    price: "$3,509.00",
-    quantity: "12.00",
-    netAmount: "$4,397.00",
-  },
-  {
-    id: "O2KMND",
-    company: "Amazon.com Inc.",
-    share: "AMZN",
-    commission: "+$5.92",
-    price: "$2,900.00",
-    quantity: "8.80",
-    netAmount: "$3,509.00",
-  },
-  {
-    id: "1LP2P4",
-    company: "Procter & Gamble",
-    share: "PG",
-    commission: "-$5.65",
-    price: "$7,978.00",
-    quantity: "2.30",
-    netAmount: "$2,652.00",
-  },
-  {
-    id: "PS9FJGL",
-    company: "Berkshire Hathaway",
-    share: "BRK",
-    commission: "+$4.37",
-    price: "$3,116.00",
-    quantity: "48.00",
-    netAmount: "$6,055.00",
-  },
-  {
-    id: "QYR135",
-    company: "Apple Inc.",
-    share: "AAPL",
-    commission: "+$38.00",
-    price: "$8,508.00",
-    quantity: "36.00",
-    netAmount: "$3,496.00",
-  },
-  {
-    id: "99SLSM",
-    company: "NVIDIA Corporation",
-    share: "NVDA",
-    commission: "+$1,427.00",
-    price: "$4,425.00",
-    quantity: "18.00",
-    netAmount: "$2,109.00",
-  },
-  {
-    id: "OSDJLS",
-    company: "Johnson & Johnson",
-    share: "JNJ",
-    commission: "+$1,937.23",
-    price: "$4,038.00",
-    quantity: "32.00",
-    netAmount: "$7,210.00",
-  },
-  {
-    id: "4HJK3N",
-    company: "JPMorgan",
-    share: "JPM",
-    commission: "-$3.67",
-    price: "$3,966.00",
-    quantity: "80.00",
-    netAmount: "$6,432.00",
-  },
-];
+import { FiltersData, Product } from "@/app/types/filterTypes";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  flexRender,
+  ColumnDef,
+  ColumnOrderState,
+} from "@tanstack/react-table";
+import { useState, useMemo } from "react";
 
-export default function MainTable({ filters }: { filters: FiltersResponse }) {
-  console.log(filters);
+interface MainTableProps {
+  filters: FiltersData;
+  products: Product[];
+}
+
+export default function MainTable({ filters, products }: MainTableProps) {
+  const [data, setData] = useState<Product[]>(products);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedValue, setEditedValue] = useState<number>(0);
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+
+  // ✅ Colunas da tabela (seguras contra null)
+  const columns = useMemo<ColumnDef<Product>[]>(
+    () => [
+      {
+        header: "",
+        id: "select",
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+        ),
+      },
+      { accessorKey: "productCode", header: "Código" },
+      { accessorKey: "description", header: "Descrição" },
+      { accessorKey: "family", header: "Família" },
+      {
+        accessorKey: "basePrice",
+        header: "Preço Base (R$)",
+        cell: ({ row }) => {
+          const price = row.original.basePrice;
+          return editingId === row.original.productCode ? (
+            <input
+              type="number"
+              value={editedValue}
+              onChange={(e) => setEditedValue(parseFloat(e.target.value) || 0)}
+              className="w-24 text-right border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
+            />
+          ) : (
+            <span className="text-gray-700">
+              {price != null ? price.toFixed(2) : "-"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "availableStock",
+        header: "Estoque Disponível",
+        cell: ({ row }) =>
+          row.original.availableStock != null
+            ? row.original.availableStock
+            : "-",
+      },
+      {
+        accessorKey: "minStock",
+        header: "Estoque Mínimo",
+        cell: ({ row }) =>
+          row.original.minStock != null ? row.original.minStock : "-",
+      },
+      {
+        accessorKey: "quantityToBuy",
+        header: "Sugestão de Compra",
+        cell: ({ row }) =>
+          row.original.quantityToBuy != null
+            ? row.original.quantityToBuy.toFixed(2)
+            : "-",
+      },
+      {
+        header: "Ações",
+        cell: ({ row }) =>
+          editingId === row.original.productCode ? (
+            <button
+              className="text-green-600 font-medium hover:text-green-700 transition"
+              onClick={() => {
+                setData((prev) =>
+                  prev.map((p) =>
+                    p.productCode === row.original.productCode
+                      ? { ...p, basePrice: editedValue }
+                      : p
+                  )
+                );
+                setEditingId(null);
+              }}
+            >
+              Salvar
+            </button>
+          ) : (
+            <button
+              className="text-indigo-600 font-medium hover:text-indigo-700 transition"
+              onClick={() => {
+                setEditingId(row.original.productCode);
+                setEditedValue(row.original.basePrice ?? 0);
+              }}
+            >
+              Editar
+            </button>
+          ),
+      },
+    ],
+    [editingId, editedValue]
+  );
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { globalFilter, columnOrder },
+    onGlobalFilterChange: setGlobalFilter,
+    onColumnOrderChange: setColumnOrder,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  const handleDragStart = (event: React.DragEvent, columnId: string) => {
+    event.dataTransfer.setData("text/plain", columnId);
+  };
+
+  const handleDrop = (event: React.DragEvent, targetColumnId: string) => {
+    const sourceColumnId = event.dataTransfer.getData("text/plain");
+    if (sourceColumnId === targetColumnId) return;
+
+    const newOrder = [
+      ...(columnOrder.length
+        ? columnOrder
+        : table.getAllLeafColumns().map((c) => c.id)),
+    ];
+    const fromIndex = newOrder.indexOf(sourceColumnId);
+    const toIndex = newOrder.indexOf(targetColumnId);
+
+    newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, sourceColumnId);
+    setColumnOrder(newOrder);
+  };
+
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <SupplierCombobox />
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-base font-semibold text-gray-900">
-            Análise de Reposição
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            A análise de reposição de estoque é uma técnica de análise
-            financeira que permite identificar a quantidade de estoque que está
-            disponível.
-          </p>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Lista de Produtos
+        </h2>
+        <input
+          value={globalFilter ?? ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Filtrar..."
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64"
+        />
       </div>
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <table className="relative min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
+
+      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 select-none">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <th
-                    scope="col"
-                    className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold whitespace-nowrap text-gray-900 sm:pl-0"
+                    key={header.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, header.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleDrop(e, header.id)}
+                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-grab active:cursor-grabbing hover:bg-gray-100 transition-colors"
                   >
-                    Código de Produto
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Código de Barra
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Share
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Commision
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Price
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Quantity
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
-                  >
-                    Net amount
-                  </th>
-                  <th
-                    scope="col"
-                    className="py-3.5 pr-4 pl-3 whitespace-nowrap sm:pr-0"
-                  >
-                    <span className="sr-only">Selecionar Fornecedor</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {transactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td className="py-2 pr-3 pl-4 text-sm whitespace-nowrap text-gray-500 sm:pl-0">
-                      {transaction.id}
-                    </td>
-                    <td className="px-2 py-2 text-sm font-medium whitespace-nowrap text-gray-900">
-                      {transaction.company}
-                    </td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap text-gray-900">
-                      {transaction.share}
-                    </td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap text-gray-500">
-                      {transaction.commission}
-                    </td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap text-gray-500">
-                      {transaction.price}
-                    </td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap text-gray-500">
-                      {transaction.quantity}
-                    </td>
-                    <td className="px-2 py-2 text-sm whitespace-nowrap text-gray-500">
-                      {transaction.netAmount}
-                    </td>
-                    <td className="py-2 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-0">
-                      <a
-                        href="#"
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        Edit<span className="sr-only">, {transaction.id}</span>
-                      </a>
-                    </td>
-                  </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </tr>
+            ))}
+          </thead>
+
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="hover:bg-gray-50 transition">
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-4 py-3 text-sm text-gray-700">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      <p className="text-xs text-gray-500 mt-3">
+        {table.getRowModel().rows.length} produtos exibidos
+      </p>
     </div>
   );
 }
