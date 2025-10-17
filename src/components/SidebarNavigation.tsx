@@ -1,83 +1,111 @@
+"use client";
+
+import { DestroyCookies } from "@/services/destroyCookies";
 import {
-  CalendarIcon,
-  ChartPieIcon,
-  DocumentDuplicateIcon,
   FolderIcon,
   HomeIcon,
-  UsersIcon,
+  ChartBarSquareIcon,
 } from "@heroicons/react/24/outline";
 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
 const navigation = [
-  { name: "Dashboard", href: "#", icon: HomeIcon, count: "5", current: true },
-  { name: "Team", href: "#", icon: UsersIcon, current: false },
   {
-    name: "Projects",
-    href: "#",
+    name: "Tela inicial",
+    href: "/",
+    icon: HomeIcon,
+  },
+  {
+    name: "Análise de Reposição",
+    href: "/analisereposicao",
+    icon: ChartBarSquareIcon,
+  },
+  {
+    name: "Tabela de Preço",
+    href: "/tabelapreco",
     icon: FolderIcon,
-    count: "12",
-    current: false,
   },
-  {
-    name: "Calendar",
-    href: "#",
-    icon: CalendarIcon,
-    count: "20+",
-    current: false,
-  },
-  { name: "Documents", href: "#", icon: DocumentDuplicateIcon, current: false },
-  { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+// 🔥 Função para apagar cookie no client
+
 export default function SidebarNavigation() {
+  const pathname = usePathname();
+  const router = useRouter();
+
   return (
-    <div className="relative flex w-50 grow flex-col gap-y-5 overflow-y-auto  border-gray-200 bg-white px-6">
-      <div className="relative flex h-16 shrink-0 items-center">
-        <img
-          alt="Your Company"
-          src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-          className="h-8 w-auto"
-        />
+    <div className="relative flex w-64 flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
+      {/* Logo */}
+      <div className="flex h-16 shrink-0 items-center">
+        <img src="/plenitude.jpg" alt="Pneus" width={700} height={380} />
       </div>
-      <nav className="relative flex flex-1 flex-col">
+
+      {/* Navegação */}
+      <nav className="flex flex-1 flex-col">
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
           <li>
             <ul role="list" className="-mx-2 space-y-1">
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className={classNames(
-                      item.current
-                        ? "bg-gray-50 text-indigo-600"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                      "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                    )}
-                  >
-                    <item.icon
-                      aria-hidden="true"
+              {navigation.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (pathname.startsWith(item.href) && item.href !== "/");
+
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
                       className={classNames(
-                        item.current
-                          ? "text-indigo-600"
-                          : "text-gray-400 group-hover:text-indigo-600",
-                        "size-6 shrink-0"
+                        isActive
+                          ? "bg-gray-50 text-indigo-600"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                        "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-colors"
                       )}
-                    />
-                    {item.name}
-                    {item.count ? (
-                      <span
+                    >
+                      <item.icon
                         aria-hidden="true"
-                        className="ml-auto w-9 min-w-max rounded-full bg-white px-2.5 py-0.5 text-center text-xs/5 font-medium whitespace-nowrap text-gray-600 outline-1 -outline-offset-1 outline-gray-200"
-                      >
-                        {item.count}
-                      </span>
-                    ) : null}
-                  </a>
-                </li>
-              ))}
+                        className={classNames(
+                          isActive
+                            ? "text-indigo-600"
+                            : "text-gray-400 group-hover:text-indigo-600",
+                          "h-6 w-6 shrink-0"
+                        )}
+                      />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+
+              {/* Botão Encerrar Sessão */}
+              <li className="mt-auto border-t border-gray-200 pt-4">
+                <button
+                  onClick={() => {
+                    DestroyCookies();
+                  }}
+                  className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="h-6 w-6 text-gray-400 group-hover:text-red-600"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3h-8.25m0 0l3-3m-3 3l3 3"
+                    />
+                  </svg>
+                  Encerrar sessão
+                </button>
+              </li>
             </ul>
           </li>
         </ul>

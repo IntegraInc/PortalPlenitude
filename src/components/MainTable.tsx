@@ -1,3 +1,6 @@
+import { FiltersResponse } from "@/app/types/filterTypes";
+import { SupplierCombobox } from "./combobox/SupplierCombobox";
+
 const transactions = [
   {
     id: "AAPS0L",
@@ -73,26 +76,21 @@ const transactions = [
   },
 ];
 
-export default function MainTable() {
+export default function MainTable({ filters }: { filters: FiltersResponse }) {
+  console.log(filters);
   return (
     <div className="px-4 sm:px-6 lg:px-8">
+      <SupplierCombobox />
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-base font-semibold text-gray-900">
-            Transactions
+            Análise de Reposição
           </h1>
           <p className="mt-2 text-sm text-gray-700">
-            A table of placeholder stock market data that does not make any
-            sense.
+            A análise de reposição de estoque é uma técnica de análise
+            financeira que permite identificar a quantidade de estoque que está
+            disponível.
           </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Export
-          </button>
         </div>
       </div>
       <div className="mt-8 flow-root">
@@ -105,13 +103,13 @@ export default function MainTable() {
                     scope="col"
                     className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold whitespace-nowrap text-gray-900 sm:pl-0"
                   >
-                    Transaction ID
+                    Código de Produto
                   </th>
                   <th
                     scope="col"
                     className="px-2 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-gray-900"
                   >
-                    Company
+                    Código de Barra
                   </th>
                   <th
                     scope="col"
@@ -147,7 +145,7 @@ export default function MainTable() {
                     scope="col"
                     className="py-3.5 pr-4 pl-3 whitespace-nowrap sm:pr-0"
                   >
-                    <span className="sr-only">Edit</span>
+                    <span className="sr-only">Selecionar Fornecedor</span>
                   </th>
                 </tr>
               </thead>
