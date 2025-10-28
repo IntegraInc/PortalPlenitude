@@ -8,12 +8,14 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar fixa à esquerda */}
-      <aside className="w-64 flex-shrink-0 border-r border-gray-200 bg-white">
+      <aside className="flex-shrink-0">
         <SidebarNavigation />
       </aside>
 
       {/* Conteúdo principal */}
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <main className="flex-1 overflow-y-auto p-8 ml-16 transition-all duration-300 ease-in-out ">
+        {children}
+      </main>
     </div>
   );
 }
