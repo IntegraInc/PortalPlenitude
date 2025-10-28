@@ -42,7 +42,6 @@ export default async function AnaliseReposicao() {
   }
 
   const productsJson: ProductsResponse = await productsRes.json();
-
   // ✅ Envia filtros + produtos para tabela
   return <MainTable filters={filtersJson.data} products={productsJson.data} />;
 }

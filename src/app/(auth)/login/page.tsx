@@ -16,7 +16,6 @@ export default function LoginPage() {
     setLoading(true);
 
     const response = await authenticate(formData);
-    console.log("response", response);
     const idToast = toast.loading("Logando...");
     if (response) {
       toast.update(idToast, {

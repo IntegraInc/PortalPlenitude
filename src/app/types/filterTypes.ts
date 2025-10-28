@@ -5,34 +5,36 @@ export interface FiltersResponse {
 }
 
 export interface FiltersData {
-  fornecedor: Fornecedor[];
-  condicaoPagamento: CondicaoPagamento[];
-  formaPagamento: FormaPagamento[];
-  familia: Familia[];
+  supplyer: Fornecedor[];
+  paymentCondition: CondicaoPagamento[];
+  paymentMethod: FormaPagamento[];
+  family: Familia[];
 }
 
 export interface Fornecedor {
-  codigo: string;
-  nome: string;
+  code: string;
+  name: string;
 }
 
 export interface CondicaoPagamento {
-  codigo: string;
-  descricao: string;
+  code: string;
+  name: string;
 }
 
 export interface FormaPagamento {
-  codigo: string;
-  descricao: string;
+  code: string;
+  name: string;
 }
 
 export interface Familia {
-  codigo: string;
-  descricao: string;
+  code: string;
+  name: string;
 }
 
 // ✅ Nova interface para produtos
 export interface Product {
+  lastPurchaseCost: string;
+  stockTurnover: number;
   productCode: string;
   barcode: number;
   description: string;
