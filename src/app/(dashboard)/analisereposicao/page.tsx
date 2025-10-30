@@ -1,3 +1,5 @@
+"use server";
+
 import { FiltersResponse, ProductsResponse } from "@/app/types/filterTypes";
 import { GetBearerToken } from "@/app/utils/getBearerToken";
 import MainTable from "@/components/MainTable";
@@ -26,7 +28,7 @@ export default async function AnaliseReposicao() {
 
   // 🧩 Busca dos produtos
   const productsRes = await fetch(
-    "https://integrainc-senior-api.vercel.app/products/all?page=1&limit=50",
+    "https://integrainc-senior-api.vercel.app/analisys/all?page=1&limit=50",
     {
       method: "GET",
       headers: {
