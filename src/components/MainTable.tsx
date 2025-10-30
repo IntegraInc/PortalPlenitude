@@ -1,6 +1,9 @@
 "use client";
 
+import createBuyingOrder from "@/app/(dashboard)/analisereposicao/action";
 import { FiltersData, Product } from "@/app/types/filterTypes";
+import { Dialog } from "@headlessui/react";
+
 import {
   useReactTable,
   getCoreRowModel,
@@ -18,7 +21,7 @@ interface MainTableProps {
   products: Product[];
 }
 
-interface OrderData {
+export interface OrderData {
   paymentCondition: string;
   company: number;
   branch: number;
@@ -37,6 +40,10 @@ export default function MainTable({ filters, products }: MainTableProps) {
   const [editedValue, setEditedValue] = useState<number>(0);
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalFornecedor, setModalFornecedor] = useState("");
+  const [modalCondicao, setModalCondicao] = useState("");
+  const [modalForma, setModalForma] = useState("");
 
   // 🔹 Filtros selecionados
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>("");
@@ -55,7 +62,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
             type="checkbox"
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
           />
         ),
       },
@@ -138,18 +145,28 @@ export default function MainTable({ filters, products }: MainTableProps) {
         accessorKey: "basePrice",
         header: "Preço Base (R$)",
         cell: ({ row }) => {
-          const price = row.original.basePrice;
-          return editingId === row.original.productCode ? (
+          const handlePriceChange = (
+            e: React.ChangeEvent<HTMLInputElement>
+          ) => {
+            const newPrice = parseFloat(e.target.value) || 0;
+            setFilteredData((prev) =>
+              prev.map((p) =>
+                p.productCode === row.original.productCode
+                  ? { ...p, basePrice: newPrice }
+                  : p
+              )
+            );
+          };
+
+          return (
             <input
               type="number"
-              value={editedValue}
-              onChange={(e) => setEditedValue(parseFloat(e.target.value) || 0)}
+              min="0"
+              step="0.01"
+              value={row.original.basePrice ?? ""}
+              onChange={handlePriceChange}
               className="w-24 text-right border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
             />
-          ) : (
-            <span className="text-gray-700">
-              {price != null ? price.toFixed(2) : "-"}
-            </span>
           );
         },
       },
@@ -191,7 +208,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
     //#TODO: Adicionar os demais filtros aqui
     // 🔹 Filtros complementares
     if (selectedFamilia)
-      filtered = filtered.filter((p) => p.family === selectedFamilia);
+      filtered = filtered.filter((p) => p.familyCode === selectedFamilia);
 
     setFilteredData(filtered);
   }, [
@@ -226,7 +243,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
     };
 
     // 🔹 Aqui você chama o método para enviar os dados
-    console.log("Dados do pedido:", orderData);
+    console.log("Dados da ordem de compra:", orderData);
 
     // Exemplo de como enviar para uma API:
     // enviarParaAPI(orderData);
@@ -276,6 +293,48 @@ export default function MainTable({ filters, products }: MainTableProps) {
   // 🔹 Contador de produtos selecionados
   const selectedCount = Object.keys(rowSelection).length;
 
+  async function enviarOrdemDeCompra() {
+    const selectedRows = table.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      alert("Selecione pelo menos um produto para gerar a ordem de compra.");
+      return;
+    }
+
+    if (!modalFornecedor || !modalCondicao || !modalForma) {
+      alert(
+        "Selecione fornecedor, condição e forma de pagamento antes de confirmar."
+      );
+      return;
+    }
+
+    const orderData: OrderData = {
+      paymentCondition: modalCondicao,
+      company: 1,
+      branch: 1,
+      supplyerCode: parseInt(modalFornecedor),
+      products: selectedRows.map((row) => ({
+        productCode: row.original.productCode,
+        orderQuantity: row.original.quantityToBuy || 0,
+        unityPrice: row.original.basePrice || 0,
+      })),
+    };
+
+    console.log("📦 Enviando ordem de compra:", orderData);
+
+    try {
+      const { responseJson } = await createBuyingOrder(orderData);
+      console.log("✅ Resposta da API:", responseJson);
+      alert("Ordem de compra criada com sucesso!");
+    } catch (error) {
+      console.error("❌ Erro ao enviar ordem de compra:", error);
+      alert("Erro ao enviar a ordem de compra. Verifique o console.");
+    }
+
+    setRowSelection({});
+    setIsModalOpen(false);
+  }
+
   return (
     <div className="p-6 max-w mx-auto">
       {/* 🔹 Header com título, busca e botão de envio */}
@@ -289,119 +348,147 @@ export default function MainTable({ filters, products }: MainTableProps) {
           )}
         </h2>
 
-        <div className="flex items-center gap-4">
-          <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por código ou descrição..."
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-72"
-          />
+        <div className="flex items-end gap-4">
+          {/* 🔍 Campo de busca */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Buscar
+            </label>
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="por código ou descrição..."
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-72"
+            />
+          </div>
 
-          {/* 🔹 Botão para enviar pedido */}
+          {/* 🧩 Select Família */}
+          <div className="flex flex-col">
+            <label
+              htmlFor="familia"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Família
+            </label>
+            <select
+              id="familia"
+              value={selectedFamilia}
+              onChange={(e) => setSelectedFamilia(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48"
+            >
+              <option value="">Todas</option>
+              {filters.family.map((f) => (
+                <option key={f.code} value={f.code}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 🚀 Botão Enviar */}
           <button
-            onClick={enviarPedido}
+            onClick={() => setIsModalOpen(true)}
             disabled={selectedCount === 0}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`self-end px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer ${
               selectedCount > 0
                 ? "bg-indigo-600 text-white hover:bg-indigo-700"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            Enviar Pedido
+            Gerar Ordem de Compra
           </button>
         </div>
       </div>
 
-      {/* 🔹 Selects de filtro */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="flex flex-col">
-          <label
-            htmlFor="fornecedor"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Fornecedor
-          </label>
-          <select
-            id="fornecedor"
-            value={selectedFornecedor}
-            onChange={(e) => setSelectedFornecedor(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Todos</option>
-            {filters.supplyer.map((f) => (
-              <option key={f.code} value={f.code}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      >
+        <Dialog.Panel className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+          <Dialog.Title className="text-lg font-semibold text-gray-800">
+            Confirmar Ordem de Compra
+          </Dialog.Title>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="condicao"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Condição de Pagamento
-          </label>
-          <select
-            id="condicao"
-            value={selectedCondicao}
-            onChange={(e) => setSelectedCondicao(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Todas</option>
-            {filters.paymentCondition.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <p className="text-sm text-gray-600">
+            Selecione as informações obrigatórias antes de gerar a ordem de
+            compra.
+          </p>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="forma"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Forma de Pagamento
-          </label>
-          <select
-            id="forma"
-            value={selectedForma}
-            onChange={(e) => setSelectedForma(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Todas</option>
-            {filters.paymentMethod.map((f) => (
-              <option key={f.code} value={f.code}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          {/* Fornecedor */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">
+              Fornecedor
+            </label>
+            <select
+              value={modalFornecedor}
+              onChange={(e) => setModalFornecedor(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">Selecione</option>
+              {filters.supplyer.map((f) => (
+                <option key={f.code} value={f.code}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="familia"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Família
-          </label>
-          <select
-            id="familia"
-            value={selectedFamilia}
-            onChange={(e) => setSelectedFamilia(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Todas</option>
-            {filters.family.map((f) => (
-              <option key={f.code} value={f.code}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+          {/* Condição de pagamento */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">
+              Condição de Pagamento
+            </label>
+            <select
+              value={modalCondicao}
+              onChange={(e) => setModalCondicao(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">Selecione</option>
+              {filters.paymentCondition.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Forma de pagamento */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">
+              Forma de Pagamento
+            </label>
+            <select
+              value={modalForma}
+              onChange={(e) => setModalForma(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">Selecione</option>
+              {filters.paymentMethod.map((f) => (
+                <option key={f.code} value={f.code}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ações */}
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={enviarOrdemDeCompra}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer"
+            >
+              Confirmar
+            </button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
 
       {/* 🔹 Tabela completa */}
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">

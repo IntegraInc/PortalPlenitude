@@ -33,6 +33,7 @@ export interface Familia {
 
 // ✅ Nova interface para produtos
 export interface Product {
+  familyCode: string;
   lastPurchaseCost: string;
   stockTurnover: number;
   productCode: string;
