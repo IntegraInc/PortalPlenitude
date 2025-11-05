@@ -28,7 +28,7 @@ export default async function AnaliseReposicao() {
 
   // 🧩 Busca dos produtos
   const productsRes = await fetch(
-    "https://integrainc-senior-api.vercel.app/analisys/all?page=1&limit=50",
+    "https://integrainc-senior-api.vercel.app/analisys/all?page=1&limit=100",
     {
       method: "GET",
       headers: {
@@ -44,6 +44,9 @@ export default async function AnaliseReposicao() {
   }
 
   const productsJson: ProductsResponse = await productsRes.json();
+
+  console.log("ProductsResponse", productsJson.data);
+  console.log("ProductsResponse", productsJson.data[0].monthlySales);
   // ✅ Envia filtros + produtos para tabela
   return <MainTable filters={filtersJson.data} products={productsJson.data} />;
 }
