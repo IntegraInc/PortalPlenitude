@@ -244,18 +244,12 @@ export default function MainTable({ filters, products }: MainTableProps) {
         size: 300,
       },
       {
-        accessorKey: "familyName",
-        header: "Família",
-        cell: ({ row }) => row.original.familyName || "-",
-        size: 120,
-      },
-      {
         accessorKey: "lastPurchaseCost",
         header: "Último Custo (R$)",
-        cell: ({ row }) =>
-          row.original.lastPurchaseCost != null
-            ? `R$ ${row.original.lastPurchaseCost.toFixed(2)}`
-            : "-",
+        cell: ({ row }) => {
+          const value = Number(row.original.lastPurchaseCost);
+          return !isNaN(value) ? `R$ ${value.toFixed(2)}` : "-";
+        },
         size: 140,
       },
       {
