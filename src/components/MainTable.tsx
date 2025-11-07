@@ -14,6 +14,7 @@ import {
   RowSelectionState,
 } from "@tanstack/react-table";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
 
 interface MainTableProps {
   filters: FiltersData;
@@ -96,7 +97,9 @@ export default function MainTable({ filters, products }: MainTableProps) {
     try {
       localStorage.removeItem(COLUMN_ORDER_STORAGE_KEY);
       setColumnOrder([]);
-      alert("Ordem das colunas resetada para o padrão!");
+      toast.success("Ordem das colunas resetada para o padrão!", {
+        autoClose: 2000,
+      });
     } catch (error) {
       console.error("Erro ao limpar ordem das colunas:", error);
     }
@@ -229,7 +232,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
       },
       {
         accessorKey: "productCode",
-        header: "Código",
+        header: "SKU",
         size: 120,
       },
       {
@@ -266,13 +269,14 @@ export default function MainTable({ filters, products }: MainTableProps) {
         header: "Estoque Físico",
         size: 130,
       },
-      {
-        accessorKey: "minStock",
-        header: "Estoque Mínimo",
-        cell: ({ row }) =>
-          row.original.minStock != null ? row.original.minStock : "-",
-        size: 130,
-      },
+      // DESCOMENTA ISSO AQUI SE QUISER VER ESTOQUE MÍNIMO, SEU PORRA
+      // {
+      //   accessorKey: "minStock",
+      //   header: "Estoque Mínimo",
+      //   cell: ({ row }) =>
+      //     row.original.minStock != null ? row.original.minStock : "-",
+      //   size: 130,
+      // },
       {
         accessorKey: "lastPurchaseDate",
         header: "Última Compra",
@@ -280,29 +284,31 @@ export default function MainTable({ filters, products }: MainTableProps) {
       },
       {
         accessorKey: "stockTurnover",
-        header: "Turnover",
+        header: "Giro de Estoque",
         cell: ({ row }) =>
           row.original.stockTurnover != null ? row.original.stockTurnover : "-",
         size: 120,
       },
-      {
-        accessorKey: "weightedAveragePrice",
-        header: "Preço Médio (R$)",
-        cell: ({ row }) =>
-          row.original.weightedAveragePrice != null
-            ? `R$ ${row.original.weightedAveragePrice.toFixed(2)}`
-            : "-",
-        size: 150,
-      },
-      {
-        accessorKey: "purchaseSuggestion",
-        header: "Sugestão Compra (R$)",
-        cell: ({ row }) =>
-          row.original.purchaseSuggestion != null
-            ? `R$ ${row.original.purchaseSuggestion}`
-            : "-",
-        size: 160,
-      },
+      // TÁ AQUI O PREÇO MÉDIO, SE PRECISAR É SÓ TIRAR A PORRA DO COMENTÁRIO
+      // {
+      //   accessorKey: "weightedAveragePrice",
+      //   header: "Preço Médio (R$)",
+      //   cell: ({ row }) =>
+      //     row.original.weightedAveragePrice != null
+      //       ? `R$ ${row.original.weightedAveragePrice.toFixed(2)}`
+      //       : "-",
+      //   size: 150,
+      // },
+      // SUGESTÃO DE COMPRA EM REAIS, PRA QUEM TEM DINHEIRO
+      // {
+      //   accessorKey: "purchaseSuggestion",
+      //   header: "Sugestão Compra (R$)",
+      //   cell: ({ row }) =>
+      //     row.original.purchaseSuggestion != null
+      //       ? `R$ ${row.original.purchaseSuggestion}`
+      //       : "-",
+      //   size: 160,
+      // },
       {
         accessorKey: "quantityToBuy",
         header: "Sugestão Compra (Qtd)",
@@ -323,14 +329,32 @@ export default function MainTable({ filters, products }: MainTableProps) {
       },
       {
         accessorKey: "average6Months",
-        header: "Média 6 meses (R$)",
+        header: "Média venda mês",
         cell: ({ row }) =>
           row.original.average6Months != null
             ? `R$ ${row.original.average6Months.toFixed(2)}`
             : "-",
         size: 150,
       },
-      // 🔹 Colunas dos meses (baseado no primeiro produto como exemplo)
+      // 🔹 MÊSES ORDENADOS CORRETAMENTE, SEU ANIMAL - DO MAIS ANTIGO PRO MAIS RECENTE
+      {
+        accessorKey: "monthlySales_JUN_2025",
+        header: "JUN/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "JUN/2025"),
+        size: 100,
+      },
+      {
+        accessorKey: "monthlySales_JUL_2025",
+        header: "JUL/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
+        size: 100,
+      },
+      {
+        accessorKey: "monthlySales_AUG_2025",
+        header: "AGO/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
+        size: 100,
+      },
       {
         accessorKey: "monthlySales_SEP_2025",
         header: "SET/2025",
@@ -349,56 +373,39 @@ export default function MainTable({ filters, products }: MainTableProps) {
         cell: ({ row }) => getMonthlySales(row.original, "NOV/2025"),
         size: 100,
       },
-      {
-        accessorKey: "monthlySales_AUG_2025",
-        header: "AGO/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
-        size: 100,
-      },
-      {
-        accessorKey: "monthlySales_JUN_2025",
-        header: "JUN/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "JUN/2025"),
-        size: 100,
-      },
-      {
-        accessorKey: "monthlySales_JUL_2025",
-        header: "JUL/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
-        size: 100,
-      },
-      {
-        accessorKey: "basePrice",
-        header: "Preço Base (R$)",
-        cell: ({ row }) => {
-          const handlePriceChange = (
-            e: React.ChangeEvent<HTMLInputElement>
-          ) => {
-            const newPrice = parseFloat(e.target.value) || 0;
-            setFilteredData((prev) =>
-              prev.map((p) =>
-                p.productCode === row.original.productCode
-                  ? { ...p, basePrice: newPrice }
-                  : p
-              )
-            );
-          };
-          return (
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={row.original.basePrice ?? ""}
-              onChange={handlePriceChange}
-              className="w-24 text-right border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
-            />
-          );
-        },
-        size: 140,
-      },
+      // EDITAR PREÇO BASE - CUIDADO PRA NÃO FODER TUDO
+      // {
+      //   accessorKey: "basePrice",
+      //   header: "Preço Base (R$)",
+      //   cell: ({ row }) => {
+      //     const handlePriceChange = (
+      //       e: React.ChangeEvent<HTMLInputElement>
+      //     ) => {
+      //       const newPrice = parseFloat(e.target.value) || 0;
+      //       setFilteredData((prev) =>
+      //         prev.map((p) =>
+      //           p.productCode === row.original.productCode
+      //             ? { ...p, basePrice: newPrice }
+      //             : p
+      //         )
+      //       );
+      //     };
+      //     return (
+      //       <input
+      //         type="number"
+      //         min="0"
+      //         step="0.01"
+      //         value={row.original.basePrice ?? ""}
+      //         onChange={handlePriceChange}
+      //         className="w-24 text-right border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
+      //       />
+      //     );
+      //   },
+      //   size: 140,
+      // },
       {
         accessorKey: "orderQuantity",
-        header: "Qtd. Pedido",
+        header: "Qtd. a Comprar",
         cell: ({ row }) => (
           <input
             type="number"
