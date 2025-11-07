@@ -13,7 +13,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Conteúdo principal */}
-      <main className="flex-1 overflow-y-auto p-8 ml-16 transition-all duration-300 ease-in-out ">
+      <main className="flex-1 overflow-y-auto p-3 ml-16 transition-all duration-300 ease-in-out ">
         {children}
       </main>
     </div>
