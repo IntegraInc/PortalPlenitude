@@ -10,7 +10,6 @@ export function useTableFilters(products: Product[], initialFamilia = "") {
   useEffect(() => {
     let filtered = [...products];
 
-    // ✅ Filtro de busca
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -20,7 +19,6 @@ export function useTableFilters(products: Product[], initialFamilia = "") {
       );
     }
 
-    // ✅ Filtro de família - apenas se existir e não for vazia
     if (selectedFamilia && selectedFamilia.trim() !== "") {
       filtered = filtered.filter((p) => p.familyCode === selectedFamilia);
     }

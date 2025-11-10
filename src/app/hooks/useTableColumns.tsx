@@ -11,6 +11,7 @@ import {
   getSortedRowModel,
   OnChangeFn,
   SortingState,
+  VisibilityState,
 } from "@tanstack/react-table";
 import { useMemo, useState, useCallback } from "react";
 
@@ -18,12 +19,18 @@ interface UseTableColumnsProps {
   filteredData: Product[];
   columnOrder: ColumnOrderState;
   setColumnOrder: (order: ColumnOrderState) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: (
+    updater: VisibilityState | ((old: VisibilityState) => VisibilityState)
+  ) => void;
 }
 
 export function useTableColumns({
   filteredData,
   columnOrder,
   setColumnOrder,
+  columnVisibility = {},
+  onColumnVisibilityChange,
 }: UseTableColumnsProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -70,7 +77,6 @@ export function useTableColumns({
     [rowSelection, isAllSelected]
   );
 
-  // ✅ Colunas simplificadas - o React Table já faz sorting automático para a maioria dos tipos
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
       {
@@ -104,6 +110,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "productCode",
+        id: "productCode",
         header: "SKU",
         size: 80,
         meta: { sticky: true, left: 40 },
@@ -111,6 +118,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "barcode",
+        id: "barcode",
         header: "Código de Barras",
         cell: ({ row }) => row.original.barcode || "-",
         size: 120,
@@ -119,6 +127,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "description",
+        id: "description",
         header: "Descrição",
         size: 250,
         meta: { sticky: true, left: 240 },
@@ -126,6 +135,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "familyName",
+        id: "familyName",
         header: "Família",
         cell: ({ row }) => row.original.familyName || "-",
         size: 120,
@@ -133,6 +143,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "familyCode",
+        id: "familyCode",
         header: "Cód. Família",
         cell: ({ row }) => row.original.familyCode || "-",
         size: 120,
@@ -140,6 +151,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "lastPurchaseCost",
+        id: "lastPurchaseCost",
         header: "Último Custo (R$)",
         cell: ({ row }) => {
           const value = row.original.lastPurchaseCost;
@@ -151,6 +163,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "availableStock",
+        id: "availableStock",
         header: "Estoque Disponível",
         cell: ({ row }) =>
           row.original.availableStock != null
@@ -161,6 +174,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "physicalStock",
+        id: "physicalStock",
         header: "Estoque Físico",
         cell: ({ row }) =>
           row.original.physicalStock != null
@@ -171,6 +185,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "stockTurnover",
+        id: "stockTurnover",
         header: "Giro de Estoque",
         cell: ({ row }) =>
           row.original.stockTurnover != null
@@ -181,6 +196,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "lastPurchaseDate",
+        id: "lastPurchaseDate",
         header: "Última Compra",
         cell: ({ row }) => row.original.lastPurchaseDate || "-",
         size: 130,
@@ -188,6 +204,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "quantityToBuy",
+        id: "quantityToBuy",
         header: "Quantidade Comprar",
         cell: ({ row }) =>
           row.original.quantityToBuy != null
@@ -198,6 +215,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "totalSales",
+        id: "totalSales",
         header: "Vendas Total",
         cell: ({ row }) =>
           row.original.totalSales != null
@@ -208,6 +226,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "average6Months",
+        id: "average6Months",
         header: "Média venda mês",
         cell: ({ row }) => {
           const value = row.original.average6Months;
@@ -218,9 +237,9 @@ export function useTableColumns({
         size: 150,
         enableSorting: true,
       },
-      // ✅ MESES ORGANIZADOS DO MAIS NOVO PARA O MAIS ANTIGO
       {
         accessorKey: "monthlySales_NOV_2025",
+        id: "monthlySales_NOV_2025",
         header: "NOV/2025",
         cell: ({ row }) => getMonthlySales(row.original, "NOV/2025"),
         size: 100,
@@ -228,6 +247,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "monthlySales_OCT_2025",
+        id: "monthlySales_OCT_2025",
         header: "OUT/2025",
         cell: ({ row }) => getMonthlySales(row.original, "OCT/2025"),
         size: 100,
@@ -235,6 +255,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "monthlySales_SEP_2025",
+        id: "monthlySales_SEP_2025",
         header: "SET/2025",
         cell: ({ row }) => getMonthlySales(row.original, "SEP/2025"),
         size: 100,
@@ -242,6 +263,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "monthlySales_AUG_2025",
+        id: "monthlySales_AUG_2025",
         header: "AGO/2025",
         cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
         size: 100,
@@ -249,6 +271,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "monthlySales_JUL_2025",
+        id: "monthlySales_JUL_2025",
         header: "JUL/2025",
         cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
         size: 100,
@@ -256,6 +279,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "monthlySales_JUN_2025",
+        id: "monthlySales_JUN_2025",
         header: "JUN/2025",
         cell: ({ row }) => getMonthlySales(row.original, "JUN/2025"),
         size: 100,
@@ -263,6 +287,7 @@ export function useTableColumns({
       },
       {
         accessorKey: "orderQuantity",
+        id: "orderQuantity",
         header: "Qtd. a Comprar",
         cell: ({ row }) => (
           <input
@@ -286,10 +311,12 @@ export function useTableColumns({
       columnOrder,
       rowSelection,
       sorting,
+      columnVisibility,
     },
     onColumnOrderChange: handleColumnOrderChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
+    onColumnVisibilityChange: onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
