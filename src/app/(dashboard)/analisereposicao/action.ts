@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { GetBearerToken } from "@/app/utils/getBearerToken";
-import { OrderData } from "@/components/MainTable";
 
-export default async function createBuyingOrder(body: OrderData) {
+export default async function createBuyingOrder(body: any) {
   const bearerToken = await GetBearerToken();
   const response = await fetch(
     "https://integrainc-senior-api.vercel.app/analisys/buying-order",
