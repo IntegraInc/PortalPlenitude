@@ -11,6 +11,7 @@ import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { useTableColumns } from "@/app/hooks/useTableColumns";
 import { useDragAndDrop } from "@/app/hooks/useDragAndDrop";
 import { useTableFilters } from "@/app/hooks/useTableFilters";
+import { useColumnVisibility } from "@/app/hooks/useColumnVisibility";
 import OrderModal from "./OrderModal";
 
 interface MainTableProps {
@@ -24,6 +25,30 @@ interface MainTableProps {
   };
   currentPage: number;
 }
+
+const AVAILABLE_COLUMNS = [
+  { id: "select", header: "Seleção" },
+  { id: "productCode", header: "SKU" },
+  { id: "barcode", header: "Código de Barras" },
+  { id: "description", header: "Descrição" },
+  { id: "familyName", header: "Família" },
+  { id: "familyCode", header: "Cód. Família" },
+  { id: "lastPurchaseCost", header: "Último Custo" },
+  { id: "availableStock", header: "Estoque Disponível" },
+  { id: "physicalStock", header: "Estoque Físico" },
+  { id: "stockTurnover", header: "Giro de Estoque" },
+  { id: "lastPurchaseDate", header: "Última Compra" },
+  { id: "quantityToBuy", header: "Quantidade Comprar" },
+  { id: "totalSales", header: "Vendas Total" },
+  { id: "average6Months", header: "Média venda mês" },
+  { id: "monthlySales_NOV_2025", header: "NOV/2025" },
+  { id: "monthlySales_OCT_2025", header: "OUT/2025" },
+  { id: "monthlySales_SEP_2025", header: "SET/2025" },
+  { id: "monthlySales_AUG_2025", header: "AGO/2025" },
+  { id: "monthlySales_JUL_2025", header: "JUL/2025" },
+  { id: "monthlySales_JUN_2025", header: "JUN/2025" },
+  { id: "orderQuantity", header: "Qtd. a Comprar" },
+];
 
 export default function MainTable({
   filters,
@@ -42,7 +67,6 @@ export default function MainTable({
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ Use os parâmetros da URL
   const currentPageFromUrl =
     Number(searchParams.get("page")) || initialCurrentPage;
   const pageSizeFromUrl =
@@ -55,10 +79,18 @@ export default function MainTable({
     setSearchTerm,
     selectedFamilia,
     setSelectedFamilia,
-  } = useTableFilters(products || [], familiaFromUrl); // ✅ Garante array vazio se products for undefined
+  } = useTableFilters(products || [], familiaFromUrl);
 
   const { columnOrder, setColumnOrder, clearPersistedColumnOrder } =
     useLocalStorage();
+
+  const {
+    columnVisibility,
+    setColumnVisibility,
+    toggleColumnVisibility,
+    resetColumnVisibility,
+  } = useColumnVisibility();
+
   const { dragState, dragHandlers } = useDragAndDrop();
 
   const {
@@ -71,9 +103,10 @@ export default function MainTable({
     filteredData,
     columnOrder,
     setColumnOrder,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
   });
 
-  // ✅ Atualizar URL quando família mudar
   useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
 
@@ -83,18 +116,14 @@ export default function MainTable({
       newSearchParams.delete("familia");
     }
 
-    // Reset para página 1 quando mudar a família
     newSearchParams.set("page", "1");
-
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   }, [selectedFamilia, router, searchParams]);
 
-  // ✅ Resetar isLoading quando os produtos mudarem
   useEffect(() => {
     setIsLoading(false);
   }, [products]);
 
-  // ✅ Fallback: resetar loading após 5 segundos
   useEffect(() => {
     if (isLoading) {
       const timeout = setTimeout(() => {
@@ -105,7 +134,6 @@ export default function MainTable({
     }
   }, [isLoading]);
 
-  // Navegação
   const navigateToPage = (page: number) => {
     setIsLoading(true);
     const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -136,13 +164,16 @@ export default function MainTable({
         selectedCount={selectedCount}
         clearPersistedColumnOrder={clearPersistedColumnOrder}
         onOpenModal={handleOpenModal}
+        columnVisibility={columnVisibility}
+        onToggleColumnVisibility={toggleColumnVisibility}
+        onResetColumnVisibility={resetColumnVisibility}
+        availableColumns={AVAILABLE_COLUMNS}
       />
 
       <div
         ref={tableContainerRef}
         className="flex-1 overflow-auto border border-gray-200 rounded-lg shadow-sm bg-white relative"
       >
-        {/* 🔄 Spinner Loading */}
         {isLoading && (
           <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center z-50 backdrop-blur-sm rounded-lg">
             <div className="flex flex-col items-center justify-center space-y-4">
