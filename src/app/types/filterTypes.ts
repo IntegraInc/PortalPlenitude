@@ -61,4 +61,10 @@ export interface ProductsResponse {
   success: boolean;
   message: string;
   data: Product[];
+  pagination?: {
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
 }
