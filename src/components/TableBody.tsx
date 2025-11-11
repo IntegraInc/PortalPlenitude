@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { flexRender, Table } from "@tanstack/react-table";
 import { Product } from "@/app/types/filterTypes";
+import { useState } from "react";
 
 interface TableBodyProps {
   table: Table<Product>;
@@ -26,6 +27,42 @@ export default function TableBody({
     handleDrop,
   } = dragHandlers;
 
+  // 👇 NOVO: controla qual menu está aberto
+  const [openColumnMenu, setOpenColumnMenu] = useState<string | null>(null);
+  const [columnFilters, setColumnFilters] = useState<
+    Record<string, Set<string>>
+  >({});
+
+  const getUniqueValues = (columnId: string) => {
+    const values = new Set<string>();
+    table.getCoreRowModel().rows.forEach((row) => {
+      const val = row.getValue(columnId);
+      if (val !== null && val !== undefined && val !== "") {
+        values.add(String(val));
+      }
+    });
+    return Array.from(values);
+  };
+
+  const toggleValueVisibility = (columnId: string, value: string) => {
+    setColumnFilters((prev) => {
+      const currentSet = new Set(prev[columnId] || []);
+      if (currentSet.has(value)) {
+        currentSet.delete(value);
+      } else {
+        currentSet.add(value);
+      }
+      return { ...prev, [columnId]: currentSet };
+    });
+  };
+
+  // Filtra as linhas conforme os valores ocultos de cada coluna
+  const filteredRows = table.getCoreRowModel().rows.filter((row) => {
+    return Object.entries(columnFilters).every(([colId, hiddenValues]) => {
+      const val = String(row.getValue(colId) ?? "");
+      return !hiddenValues.has(val);
+    });
+  });
   return (
     <>
       <thead className="bg-gray-50 select-none sticky top-0 z-30">
@@ -128,7 +165,7 @@ export default function TableBody({
                         </span>
                       )}
                     </span>
-                    <div
+                    {/* <div
                       className={`ml-1 transition-opacity duration-200 flex-shrink-0 ${
                         isDragging
                           ? "opacity-0"
@@ -148,6 +185,64 @@ export default function TableBody({
                           d="M4 8h16M4 16h16"
                         />
                       </svg>
+                    </div> */}
+                    {/* Ícone de menu + dropdown */}
+                    <div className="relative ml-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenColumnMenu(
+                            openColumnMenu === header.id ? null : header.id
+                          );
+                        }}
+                        className={`p-1 rounded hover:bg-gray-200 transition ${
+                          openColumnMenu === header.id ? "bg-gray-200" : ""
+                        }`}
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 8h16M4 16h16"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown */}
+                      {openColumnMenu === header.id && (
+                        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-48 p-2 max-h-64 overflow-y-auto">
+                          <p className="text-xs text-gray-500 mb-1 font-semibold truncate">
+                            Filtrar {header.column.columnDef.header as string}
+                          </p>
+                          <hr className="my-1" />
+                          {getUniqueValues(header.id).map((val) => (
+                            <label
+                              key={val}
+                              className="flex items-center text-xs gap-2 px-1 py-0.5 hover:bg-gray-100 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={!columnFilters[header.id]?.has(val)}
+                                onChange={() =>
+                                  toggleValueVisibility(header.id, val)
+                                }
+                              />
+                              <span className="truncate">{val}</span>
+                            </label>
+                          ))}
+                          {getUniqueValues(header.id).length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-2">
+                              Sem valores
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </th>
@@ -158,7 +253,7 @@ export default function TableBody({
       </thead>
       <tbody className="divide-y divide-gray-100 bg-white relative z-10">
         {/* Adicionei z-10 aqui */}
-        {table?.getRowModel().rows.map((row) => (
+        {filteredRows.map((row) => (
           <tr
             key={row.id}
             className={`hover:bg-gray-50 transition-colors duration-150 ${
