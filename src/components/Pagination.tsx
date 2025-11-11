@@ -21,21 +21,17 @@ export default function Pagination({
   onPageChange,
   onPageSizeChange,
 }: PaginationProps) {
-  // ✅ Geração de números de página CORRIGIDA
   const generatePageNumbers = () => {
     const pages: (number | string)[] = [];
 
     if (totalPages <= 1) return [1];
 
-    // Sempre mostra primeira página
     pages.push(1);
 
-    // Lógica para páginas intermediárias
     if (currentPage > 3) {
       pages.push("...");
     }
 
-    // Páginas ao redor da atual
     const start = Math.max(2, currentPage - 1);
     const end = Math.min(totalPages - 1, currentPage + 1);
 
@@ -45,12 +41,10 @@ export default function Pagination({
       }
     }
 
-    // Adiciona "..." se necessário
     if (currentPage < totalPages - 2) {
       pages.push("...");
     }
 
-    // Sempre mostra última página (se houver mais de 1 página)
     if (totalPages > 1) {
       pages.push(totalPages);
     }
@@ -115,7 +109,7 @@ export default function Pagination({
                 key={index}
                 onClick={() => isNumber && onPageChange(page)}
                 disabled={!isNumber || isLoading}
-                className={`px-3 py-1 rounded-md text-sm font-medium min-w-[40px] transition-colors ${
+                className={`px-3 cursor-pointer py-1 rounded-md text-sm font-medium min-w-[40px] transition-colors ${
                   isCurrentPage
                     ? "bg-indigo-600 text-white border border-indigo-600 shadow-md font-semibold"
                     : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"

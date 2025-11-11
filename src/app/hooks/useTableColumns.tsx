@@ -112,8 +112,8 @@ export function useTableColumns({
         accessorKey: "productCode",
         id: "productCode",
         header: "SKU",
-        size: 80,
-        meta: { sticky: true, left: 40 },
+        size: 100,
+        meta: { sticky: true, left: 45 },
         enableSorting: true,
       },
       {
@@ -122,7 +122,7 @@ export function useTableColumns({
         header: "Código de Barras",
         cell: ({ row }) => row.original.barcode || "-",
         size: 120,
-        meta: { sticky: true, left: 120 },
+        meta: { sticky: true, left: 110 },
         enableSorting: true,
       },
       {
@@ -230,9 +230,7 @@ export function useTableColumns({
         header: "Média venda mês",
         cell: ({ row }) => {
           const value = row.original.average6Months;
-          if (!value) return "-";
-          const numericValue = Number(value);
-          return !isNaN(numericValue) ? `R$ ${numericValue.toFixed(2)}` : "-";
+          return !value ? "-" : `${value.toFixed(2)}`;
         },
         size: 150,
         enableSorting: true,
