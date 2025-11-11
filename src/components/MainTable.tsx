@@ -27,10 +27,6 @@ interface MainTableProps {
 }
 
 const AVAILABLE_COLUMNS = [
-  { id: "select", header: "Seleção" },
-  { id: "productCode", header: "SKU" },
-  { id: "barcode", header: "Código de Barras" },
-  { id: "description", header: "Descrição" },
   { id: "familyName", header: "Família" },
   { id: "familyCode", header: "Cód. Família" },
   { id: "lastPurchaseCost", header: "Último Custo" },
@@ -116,9 +112,13 @@ export default function MainTable({
       newSearchParams.delete("familia");
     }
 
-    newSearchParams.set("page", "1");
+    // ⚙️ Só reseta para página 1 se a família REALMENTE mudar
+    const currentFamilia = searchParams.get("familia") || "";
+    if (currentFamilia !== selectedFamilia) {
+      newSearchParams.set("page", "1");
+    }
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  }, [selectedFamilia, router, searchParams]);
+  }, [selectedFamilia]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -141,11 +141,19 @@ export default function MainTable({
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   };
 
+  // ✅ CORREÇÃO: Mantém a página atual ao mudar o pageSize
   const changePageSize = (newPageSize: number) => {
     setIsLoading(true);
     const newSearchParams = new URLSearchParams(searchParams.toString());
+
+    // Calcula a nova página baseada no item atual
+    const firstItemIndex = (currentPageFromUrl - 1) * pageSizeFromUrl;
+    const newPage = Math.floor(firstItemIndex / newPageSize) + 1;
+
+    // Define os novos parâmetros
     newSearchParams.set("pageSize", newPageSize.toString());
-    newSearchParams.set("page", "1");
+    newSearchParams.set("page", newPage.toString());
+
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   };
 

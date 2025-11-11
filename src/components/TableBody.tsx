@@ -28,7 +28,8 @@ export default function TableBody({
 
   return (
     <>
-      <thead className="bg-gray-50 select-none sticky top-0 z-20">
+      <thead className="bg-gray-50 select-none sticky top-0 z-30">
+        {/* Aumentei o z-index para 30 */}
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
@@ -72,7 +73,7 @@ export default function TableBody({
                     }
                     ${
                       isSticky
-                        ? "sticky z-30 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
+                        ? "sticky z-40 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]" /* Aumentei z-index para 40 */
                         : ""
                     }
                   `}
@@ -155,7 +156,8 @@ export default function TableBody({
           </tr>
         ))}
       </thead>
-      <tbody className="divide-y divide-gray-100 bg-white">
+      <tbody className="divide-y divide-gray-100 bg-white relative z-10">
+        {/* Adicionei z-10 aqui */}
         {table?.getRowModel().rows.map((row) => (
           <tr
             key={row.id}
