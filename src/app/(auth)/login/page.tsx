@@ -28,6 +28,7 @@ export default function LoginPage() {
 
     setLoading(false);
   }
+
   return (
     <>
       <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -77,11 +78,18 @@ export default function LoginPage() {
 
               <div>
                 <button
+                  type="submit"
                   disabled={loading}
-                  // type="submit"
                   className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer"
                 >
-                  Entrar
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full mr-5 h-4 w-4 border-b-2 border-white" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Entrar"
+                  )}
                 </button>
               </div>
             </form>

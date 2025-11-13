@@ -1,33 +1,47 @@
 "use client";
 
 import { Dialog } from "@headlessui/react";
-import { FiltersData } from "@/app/types/filterTypes";
+import { FiltersData, Product } from "@/app/types/filterTypes";
 import { useState } from "react";
+import createBuyingOrder from "@/app/(dashboard)/analisereposicao/action";
+import { toast } from "react-toastify";
+
+// Interface para o OrderData
+interface OrderData {
+  paymentCondition: string;
+  company: number;
+  branch: number;
+  supplyerCode: number;
+  products: Array<{
+    productCode: string;
+    orderQuantity: number;
+    unityPrice: number;
+  }>;
+}
 
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   filters: FiltersData;
-  onSubmit: (orderData: {
-    fornecedor: string;
-    condicao: string;
-    forma: string;
-  }) => void;
+  selectedProducts: Product[];
+  orderQuantities: Record<string, number>;
 }
 
 export default function OrderModal({
   isOpen,
   onClose,
   filters,
-  onSubmit,
+  selectedProducts,
+  orderQuantities,
 }: OrderModalProps) {
   const [modalData, setModalData] = useState({
     fornecedor: "",
     condicao: "",
     forma: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!modalData.fornecedor || !modalData.condicao || !modalData.forma) {
       alert(
         "Selecione fornecedor, condição e forma de pagamento antes de confirmar."
@@ -35,8 +49,54 @@ export default function OrderModal({
       return;
     }
 
-    onSubmit(modalData);
-    setModalData({ fornecedor: "", condicao: "", forma: "" });
+    if (selectedProducts.length === 0) {
+      alert("Nenhum produto selecionado.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // ✅ Monta o objeto OrderData conforme solicitado
+      const orderData: OrderData = {
+        paymentCondition: modalData.condicao,
+        company: 1,
+        branch: 1,
+        supplyerCode: parseInt(modalData.fornecedor),
+        products: selectedProducts.map((product) => ({
+          productCode: product.productCode,
+          orderQuantity:
+            orderQuantities[product.productCode] || product.quantityToBuy || 0,
+          unityPrice: product.lastPurchaseCost
+            ? parseFloat(
+                product.lastPurchaseCost
+                  .replace("R$", "")
+                  .replace(/\./g, "")
+                  .replace(",", ".")
+                  .trim()
+              )
+            : 0,
+        })),
+      };
+
+      // ✅ Faz a requisição usando a action
+      const result = await createBuyingOrder(orderData);
+
+      if (result.responseJson) {
+        toast.success("Ordem de compra criada com sucesso!", {
+          autoClose: 2000,
+        });
+        setModalData({ fornecedor: "", condicao: "", forma: "" });
+        onClose();
+      } else {
+        throw new Error("Erro ao criar ordem de compra");
+      }
+    } catch (error) {
+      console.error("Erro ao criar ordem de compra:", error);
+      alert("Erro ao criar ordem de compra. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -60,6 +120,14 @@ export default function OrderModal({
           compra.
         </p>
 
+        {/* Informação sobre produtos selecionados */}
+        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+          <p className="text-xs text-green-700">
+            <strong>Produtos selecionados:</strong> {selectedProducts.length}{" "}
+            produto(s)
+          </p>
+        </div>
+
         {/* Fornecedor */}
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700">
@@ -71,6 +139,7 @@ export default function OrderModal({
               setModalData((prev) => ({ ...prev, fornecedor: e.target.value }))
             }
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            disabled={isLoading}
           >
             <option value="">Selecione um fornecedor</option>
             {filters.supplyer.map((f) => (
@@ -92,6 +161,7 @@ export default function OrderModal({
               setModalData((prev) => ({ ...prev, condicao: e.target.value }))
             }
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            disabled={isLoading}
           >
             <option value="">Selecione uma condição</option>
             {filters.paymentCondition.map((c) => (
@@ -113,6 +183,7 @@ export default function OrderModal({
               setModalData((prev) => ({ ...prev, forma: e.target.value }))
             }
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            disabled={isLoading}
           >
             <option value="">Selecione uma forma</option>
             {filters.paymentMethod.map((f) => (
@@ -136,15 +207,24 @@ export default function OrderModal({
         <div className="flex justify-end gap-3 pt-4">
           <button
             onClick={handleClose}
-            className="px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-300"
+            disabled={isLoading}
+            className="px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Confirmar Ordem
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Processando...
+              </>
+            ) : (
+              "Confirmar Ordem"
+            )}
           </button>
         </div>
       </Dialog.Panel>

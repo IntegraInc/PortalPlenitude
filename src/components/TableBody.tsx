@@ -11,6 +11,8 @@ interface TableBodyProps {
   dragHandlers: any;
   columnOrder: string[];
   setColumnOrder: (order: string[]) => void;
+
+  setSelectProducts: any;
 }
 
 export default function TableBody({
@@ -125,7 +127,7 @@ export default function TableBody({
                     }
                   `}
                   style={{
-                    width: header.getSize(),
+                    width: "header.getSize()",
                     left: isSticky ? stickyLeft : undefined,
                     padding: isSticky ? "6px 8px" : "8px 12px",
                   }}

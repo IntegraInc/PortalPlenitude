@@ -31,7 +31,10 @@ export default function TableHeader({
   availableColumns = [],
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
+  const [isFamiliaDropdownOpen, setIsFamiliaDropdownOpen] = useState(false);
+  const [familiaSearch, setFamiliaSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const familiaDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,6 +44,13 @@ export default function TableHeader({
       ) {
         setIsColumnDropdownOpen(false);
       }
+      if (
+        familiaDropdownRef.current &&
+        !familiaDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFamiliaDropdownOpen(false);
+        setFamiliaSearch("");
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -48,20 +58,35 @@ export default function TableHeader({
   }, []);
 
   // ✅ CORREÇÃO DEFINITIVA: Lógica correta para visibilidade
-  // No React Table:
-  // - true = coluna OCULTA
-  // - false = coluna VISÍVEL
-  // - undefined = coluna VISÍVEL (padrão)
   const isColumnVisible = (columnId: string) => {
-    // Se columnVisibility[columnId] é true, a coluna está OCULTA
-    // Se é false ou undefined, a coluna está VISÍVEL
     return columnVisibility[columnId] !== true;
   };
 
-  // ✅ Contador de colunas visíveis para debug
+  // ✅ Filtro para as famílias
+  const filteredFamilies = filters.family.filter((f) =>
+    f.name.toLowerCase().includes(familiaSearch.toLowerCase())
+  );
+
+  // ✅ Obter o nome da família selecionada - SEM "Todas as famílias"
+  const selectedFamilyName =
+    filters.family.find((f) => f.code === selectedFamilia)?.name ||
+    "Selecione uma família";
+
   const visibleColumnsCount = availableColumns.filter((col) =>
     isColumnVisible(col.id)
   ).length;
+
+  const handleFamiliaSelect = (familiaCode: string) => {
+    setSelectedFamilia(familiaCode);
+    setIsFamiliaDropdownOpen(false);
+    setFamiliaSearch("");
+  };
+
+  const clearFamiliaSelection = () => {
+    setSelectedFamilia("");
+    setIsFamiliaDropdownOpen(false);
+    setFamiliaSearch("");
+  };
 
   return (
     <div className="flex flex-wrap items-end gap-4 mb-4">
@@ -76,27 +101,93 @@ export default function TableHeader({
         />
       </div>
 
-      {/* Select Família */}
-      <div className="flex flex-col">
-        <label
-          htmlFor="familia"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+      {/* Combobox Família */}
+      <div className="flex flex-col relative" ref={familiaDropdownRef}>
+        <label className="text-sm font-medium text-gray-700 mb-1">
           Família
         </label>
-        <select
-          id="familia"
-          value={selectedFamilia}
-          onChange={(e) => setSelectedFamilia(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48"
+        <button
+          onClick={() => setIsFamiliaDropdownOpen(!isFamiliaDropdownOpen)}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
         >
-          {/* <option value="">Todas</option> */}
-          {filters.family.map((f) => (
-            <option key={f.code} value={f.code}>
-              {f.name}
-            </option>
-          ))}
-        </select>
+          <span className="truncate">{selectedFamilyName}</span>
+          <div className="flex items-center gap-1">
+            <svg
+              className={`w-4 h-4 transition-transform ${
+                isFamiliaDropdownOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </button>
+
+        {isFamiliaDropdownOpen && (
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+            {/* Campo de busca dentro do dropdown */}
+            <div className="p-2 border-b border-gray-200">
+              <input
+                type="text"
+                value={familiaSearch}
+                onChange={(e) => setFamiliaSearch(e.target.value)}
+                placeholder="Buscar família..."
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Lista de famílias - SEM OPÇÃO "TODAS" */}
+            <div className="max-h-60 overflow-y-auto">
+              {filteredFamilies.length === 0 ? (
+                <div className="text-sm text-gray-500 p-3 text-center">
+                  Nenhuma família encontrada
+                </div>
+              ) : (
+                filteredFamilies.map((f) => (
+                  <button
+                    key={f.code}
+                    onClick={() => handleFamiliaSelect(f.code)}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
+                      selectedFamilia === f.code
+                        ? "bg-indigo-50 text-indigo-700"
+                        : ""
+                    }`}
+                  >
+                    <span className="truncate">{f.name}</span>
+                    {selectedFamilia === f.code && (
+                      <svg
+                        className="w-4 h-4 text-indigo-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* Contador de resultados */}
+            <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
+              <div className="text-xs text-gray-500">
+                {filteredFamilies.length} de {filters.family.length} famílias
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dropdown Colunas */}
@@ -151,11 +242,6 @@ export default function TableHeader({
                         type="checkbox"
                         checked={!isVisible}
                         onChange={() => {
-                          console.log(
-                            `Toggling ${
-                              column.id
-                            } from ${isVisible} to ${!isVisible}`
-                          );
                           onToggleColumnVisibility?.(column.id);
                         }}
                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
