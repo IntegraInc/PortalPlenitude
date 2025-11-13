@@ -23,6 +23,8 @@ interface UseTableColumnsProps {
   onColumnVisibilityChange?: (
     updater: VisibilityState | ((old: VisibilityState) => VisibilityState)
   ) => void;
+  // ✅ Adiciona callback para enviar as quantidades modificadas
+  onOrderQuantitiesChange?: (quantities: Record<string, number>) => void;
 }
 
 export function useTableColumns({
@@ -31,9 +33,14 @@ export function useTableColumns({
   setColumnOrder,
   columnVisibility = {},
   onColumnVisibilityChange,
+  onOrderQuantitiesChange,
 }: UseTableColumnsProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
+  // ✅ State para armazenar as quantidades modificadas
+  const [orderQuantities, setOrderQuantities] = useState<
+    Record<string, number>
+  >({});
 
   const handleColumnOrderChange: OnChangeFn<ColumnOrderState> = useCallback(
     (updaterOrValue) => {
@@ -45,6 +52,39 @@ export function useTableColumns({
     },
     [columnOrder, setColumnOrder]
   );
+
+  // ✅ Função para atualizar a quantidade de um produto
+  const updateOrderQuantity = useCallback(
+    (productCode: string, quantity: number) => {
+      setOrderQuantities((prev) => {
+        const newQuantities = {
+          ...prev,
+          [productCode]: quantity,
+        };
+
+        // ✅ Notifica o componente pai sobre a mudança
+        if (onOrderQuantitiesChange) {
+          onOrderQuantitiesChange(newQuantities);
+        }
+
+        return newQuantities;
+      });
+    },
+    [onOrderQuantitiesChange]
+  );
+
+  // ✅ Inicializa as quantidades com os valores padrão
+  useEffect(() => {
+    const initialQuantities: Record<string, number> = {};
+    filteredData.forEach((product) => {
+      initialQuantities[product.productCode] = product.quantityToBuy || 0;
+    });
+    setOrderQuantities(initialQuantities);
+
+    if (onOrderQuantitiesChange) {
+      onOrderQuantitiesChange(initialQuantities);
+    }
+  }, [filteredData, onOrderQuantitiesChange]);
 
   const getMonthlySales = useCallback((product: Product, month: string) => {
     const monthlySale = product.monthlySales?.find(
@@ -119,7 +159,7 @@ export function useTableColumns({
       {
         accessorKey: "barcode",
         id: "barcode",
-        header: "Código de Barras",
+        header: "Cod.Barras",
         cell: ({ row }) => row.original.barcode || "-",
         size: 120,
         meta: { sticky: true, left: 110 },
@@ -129,19 +169,18 @@ export function useTableColumns({
         accessorKey: "description",
         id: "description",
         header: "Descrição",
-        size: 180, // antes era 250
+        size: 180,
         meta: { sticky: true, left: 240 },
         enableSorting: true,
         cell: ({ row }) => (
           <div
-            className="truncate max-w-[250px]" // ✅ aplica largura real e corta texto
+            className="truncate max-w-[250px]"
             title={row.original.description}
           >
             {row.original.description || "-"}
           </div>
         ),
       },
-
       {
         accessorKey: "familyName",
         id: "familyName",
@@ -161,7 +200,7 @@ export function useTableColumns({
       {
         accessorKey: "lastPurchaseCost",
         id: "lastPurchaseCost",
-        header: "Último Custo (R$)",
+        header: "Ult.Custo",
         cell: ({ row }) => {
           const value = row.original.lastPurchaseCost;
           if (!value || value === "R$0,01") return "-";
@@ -173,7 +212,7 @@ export function useTableColumns({
       {
         accessorKey: "availableStock",
         id: "availableStock",
-        header: "Estoque Disponível",
+        header: "Est.Disp",
         cell: ({ row }) =>
           row.original.availableStock != null
             ? row.original.availableStock.toString()
@@ -184,7 +223,7 @@ export function useTableColumns({
       {
         accessorKey: "physicalStock",
         id: "physicalStock",
-        header: "Estoque Físico",
+        header: "Est.Fisico",
         cell: ({ row }) =>
           row.original.physicalStock != null
             ? row.original.physicalStock.toString()
@@ -296,19 +335,36 @@ export function useTableColumns({
         accessorKey: "orderQuantity",
         id: "orderQuantity",
         header: "Qtd. a Comprar",
-        cell: ({ row }) => (
-          <input
-            type="number"
-            min="0"
-            defaultValue={row.original.quantityToBuy || 0}
-            className="w-20 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
-          />
-        ),
+        cell: ({ row }) => {
+          const productCode = row.original.productCode;
+          const currentQuantity =
+            orderQuantities[productCode] ?? row.original.quantityToBuy ?? 0;
+
+          return (
+            <input
+              type="number"
+              min="0"
+              value={currentQuantity}
+              onChange={(e) => {
+                const newQuantity = parseInt(e.target.value) || 0;
+                updateOrderQuantity(productCode, newQuantity);
+              }}
+              className="w-20 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
+            />
+          );
+        },
         size: 120,
         enableSorting: false,
       },
     ],
-    [isAllSelected, isSomeSelected, toggleAllRowsSelection, getMonthlySales]
+    [
+      isAllSelected,
+      isSomeSelected,
+      toggleAllRowsSelection,
+      getMonthlySales,
+      orderQuantities,
+      updateOrderQuantity,
+    ]
   );
 
   const table = useReactTable({
@@ -329,26 +385,27 @@ export function useTableColumns({
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
   });
+
   useEffect(() => {
     const allCols = table.getAllLeafColumns().map((c) => c.id);
-
-    // Se alguma coluna estiver faltando na columnOrder → corrigir automaticamente
     if (allCols.some((id) => !columnOrder.includes(id))) {
       setColumnOrder(allCols);
     }
   }, [table]);
+
   const selectedCount = Object.keys(rowSelection).length;
 
   return {
     columns,
     table,
     selectedCount,
-    rowSelection, // ✅ Adiciona isso
+    rowSelection,
     setRowSelection,
     toggleAllRowsSelection,
     isAllSelected,
     isSomeSelected,
     sorting,
     setSorting,
+    orderQuantities, // ✅ Retorna as quantidades para o componente pai
   };
 }

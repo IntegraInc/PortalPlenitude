@@ -5,6 +5,7 @@ import { FiltersData, Product } from "@/app/types/filterTypes";
 import { useState } from "react";
 import createBuyingOrder from "@/app/(dashboard)/analisereposicao/action";
 import { toast } from "react-toastify";
+
 // Interface para o OrderData
 interface OrderData {
   paymentCondition: string;
@@ -23,6 +24,7 @@ interface OrderModalProps {
   onClose: () => void;
   filters: FiltersData;
   selectedProducts: Product[];
+  orderQuantities: Record<string, number>;
 }
 
 export default function OrderModal({
@@ -30,6 +32,7 @@ export default function OrderModal({
   onClose,
   filters,
   selectedProducts,
+  orderQuantities,
 }: OrderModalProps) {
   const [modalData, setModalData] = useState({
     fornecedor: "",
@@ -62,13 +65,13 @@ export default function OrderModal({
         supplyerCode: parseInt(modalData.fornecedor),
         products: selectedProducts.map((product) => ({
           productCode: product.productCode,
-          orderQuantity: product.quantityToBuy || 0,
+          orderQuantity:
+            orderQuantities[product.productCode] || product.quantityToBuy || 0,
           unityPrice: product.lastPurchaseCost
-            ? // Converte "R$ 1.234,56" para número (1234.56)
-              parseFloat(
+            ? parseFloat(
                 product.lastPurchaseCost
                   .replace("R$", "")
-                  .replace(".", "")
+                  .replace(/\./g, "")
                   .replace(",", ".")
                   .trim()
               )
@@ -84,9 +87,6 @@ export default function OrderModal({
       console.log("Resposta da API:", result);
 
       if (result.responseJson) {
-        // alert("Ordem de compra criada com sucesso!");
-        // Limpa o modal
-
         toast.success("Ordem de compra criada com sucesso!", {
           autoClose: 2000,
         });

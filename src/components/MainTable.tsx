@@ -46,7 +46,9 @@ export default function MainTable({ filters, products }: MainTableProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectProducts, setSelectProducts] = useState(false);
-
+  const [orderQuantities, setOrderQuantities] = useState<
+    Record<string, number>
+  >({});
   // ✅ STATE para salvar os produtos selecionados
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
@@ -80,12 +82,14 @@ export default function MainTable({ filters, products }: MainTableProps) {
     isAllSelected,
     isSomeSelected,
     rowSelection,
+    orderQuantities: tableOrderQuantities, // Recebe as quantidades do hook
   } = useTableColumns({
     filteredData,
     columnOrder,
     setColumnOrder,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
+    onOrderQuantitiesChange: setOrderQuantities, // ✅ Callback para atualizar as quantidades
   });
 
   // ✅ EFFECT para atualizar os produtos selecionados quando o rowSelection mudar
@@ -211,7 +215,8 @@ export default function MainTable({ filters, products }: MainTableProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         filters={filters}
-        selectedProducts={selectedProducts} // ✅ Passa os produtos selecionados para o modal
+        selectedProducts={selectedProducts}
+        orderQuantities={orderQuantities} // ✅ Passa as quantidades atualizadas
       />
     </div>
   );
