@@ -109,16 +109,23 @@ export default function SidebarNavigation() {
               <li key={item.name}>
                 {item.disabled ? (
                   <div
-                    className="group flex items-center gap-x-3 rounded-lg p-2 text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed opacity-50 transition-all duration-200"
+                    className={classNames(
+                      "group flex items-center rounded-lg p-2 text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed opacity-50 transition-all duration-200",
+                      isOpen ? "gap-x-3 justify-start" : "justify-center"
+                    )}
                     title="Em breve"
                   >
-                    <item.icon className="h-5 w-5 shrink-0 text-gray-300 transition-all duration-200" />
+                    <item.icon
+                      className={classNames(
+                        "h-5 w-5 shrink-0 text-gray-300 transition-all duration-200"
+                      )}
+                    />
                     <span
                       className={classNames(
                         "transition-all duration-300 ease-in-out whitespace-nowrap",
                         isOpen
                           ? "opacity-100 translate-x-0"
-                          : "opacity-0 -translate-x-2"
+                          : "opacity-0 -translate-x-2 absolute"
                       )}
                     >
                       {item.name}
@@ -131,7 +138,8 @@ export default function SidebarNavigation() {
                       isActive
                         ? "bg-indigo-50 text-indigo-600 border-indigo-200"
                         : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 border-transparent",
-                      "group flex items-center gap-x-3 rounded-lg p-2 text-sm font-semibold transition-all duration-200 border"
+                      "group flex items-center rounded-lg p-2 text-sm font-semibold transition-all duration-200 border",
+                      isOpen ? "gap-x-3 justify-start" : "justify-center"
                     )}
                     title={!isOpen ? item.name : ""}
                   >
@@ -148,7 +156,7 @@ export default function SidebarNavigation() {
                         "transition-all duration-300 ease-in-out whitespace-nowrap",
                         isOpen
                           ? "opacity-100 translate-x-0"
-                          : "opacity-0 -translate-x-2"
+                          : "opacity-0 -translate-x-2 absolute"
                       )}
                     >
                       {item.name}
@@ -166,7 +174,10 @@ export default function SidebarNavigation() {
             DestroyCookies();
             router.push("/login");
           }}
-          className="group flex items-center gap-x-3 rounded-lg p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 border border-transparent hover:border-red-100 cursor-pointer"
+          className={classNames(
+            "group flex items-center rounded-lg p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 border border-transparent hover:border-red-100 cursor-pointer",
+            isOpen ? "gap-x-3 justify-start" : "justify-center"
+          )}
           title={!isOpen ? "Encerrar sessão" : ""}
         >
           <svg
@@ -175,7 +186,9 @@ export default function SidebarNavigation() {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="h-5 w-5 text-gray-400 group-hover:text-red-600 transition-all duration-200"
+            className={classNames(
+              "h-5 w-5 text-gray-400 group-hover:text-red-600 transition-all duration-200"
+            )}
           >
             <path
               strokeLinecap="round"
@@ -186,7 +199,9 @@ export default function SidebarNavigation() {
           <span
             className={classNames(
               "transition-all duration-300 ease-in-out whitespace-nowrap cursor-pointer",
-              isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
+              isOpen
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-2 absolute"
             )}
           >
             Encerrar sessão
