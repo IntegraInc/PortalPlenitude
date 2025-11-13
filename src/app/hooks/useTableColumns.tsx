@@ -160,7 +160,7 @@ export function useTableColumns({
         accessorKey: "barcode",
         id: "barcode",
         header: "Cod.Barras",
-        cell: ({ row }) => row.original.barcode || "-",
+        cell: ({ row }) => row.original.barcode,
         size: 120,
         meta: { sticky: true, left: 110 },
         enableSorting: true,
@@ -180,7 +180,7 @@ export function useTableColumns({
               className="truncate max-w-[500px]" // Ajuste para garantir que o texto não ultrapasse a largura
               title={row.original.description} // Tooltip nativo do HTML
             >
-              {row.original.description || "-"}
+              {row.original.description}
             </div>
 
             {/* Tooltip customizado */}
@@ -201,7 +201,7 @@ export function useTableColumns({
         accessorKey: "familyName",
         id: "familyName",
         header: "Família",
-        cell: ({ row }) => row.original.familyName || "-",
+        cell: ({ row }) => row.original.familyName,
         size: 120,
         enableSorting: true,
       },
@@ -209,7 +209,7 @@ export function useTableColumns({
         accessorKey: "familyCode",
         id: "familyCode",
         header: "Cód. Família",
-        cell: ({ row }) => row.original.familyCode || "-",
+        cell: ({ row }) => row.original.familyCode,
         size: 120,
         enableSorting: true,
       },
@@ -219,7 +219,7 @@ export function useTableColumns({
         header: "Ult.Custo",
         cell: ({ row }) => {
           const value = row.original.lastPurchaseCost;
-          if (!value || value === "R$0,01") return "-";
+          // if (!value || value === "R$0,01") return "-";
           return value;
         },
         size: 140,
@@ -230,9 +230,8 @@ export function useTableColumns({
         id: "availableStock",
         header: "Est.Disp",
         cell: ({ row }) =>
-          row.original.availableStock != null
-            ? row.original.availableStock.toString()
-            : "-",
+          row.original.availableStock != null &&
+          row.original.availableStock.toString(),
         size: 140,
         enableSorting: true,
       },
@@ -241,9 +240,8 @@ export function useTableColumns({
         id: "physicalStock",
         header: "Est.Fisico",
         cell: ({ row }) =>
-          row.original.physicalStock != null
-            ? row.original.physicalStock.toString()
-            : "-",
+          row.original.physicalStock != null &&
+          row.original.physicalStock.toString(),
         size: 130,
         enableSorting: true,
       },
@@ -252,9 +250,8 @@ export function useTableColumns({
         id: "stockTurnover",
         header: "Dias Estoque",
         cell: ({ row }) =>
-          row.original.stockTurnover != null
-            ? row.original.stockTurnover.toString()
-            : "-",
+          row.original.stockTurnover != null &&
+          row.original.stockTurnover.toString(),
         size: 120,
         enableSorting: true,
       },
@@ -262,7 +259,7 @@ export function useTableColumns({
         accessorKey: "lastPurchaseDate",
         id: "lastPurchaseDate",
         header: "Última Compra",
-        cell: ({ row }) => row.original.lastPurchaseDate || "-",
+        cell: ({ row }) => row.original.lastPurchaseDate,
         size: 130,
         enableSorting: true,
       },
@@ -271,9 +268,8 @@ export function useTableColumns({
         id: "quantityToBuy",
         header: "Quantidade Sugerida",
         cell: ({ row }) =>
-          row.original.quantityToBuy != null
-            ? row.original.quantityToBuy.toString()
-            : "-",
+          row.original.quantityToBuy != null &&
+          row.original.quantityToBuy.toString(),
         size: 160,
         enableSorting: true,
       },
@@ -282,9 +278,7 @@ export function useTableColumns({
         id: "totalSales",
         header: "Vendas Total",
         cell: ({ row }) =>
-          row.original.totalSales != null
-            ? row.original.totalSales.toString()
-            : "-",
+          row.original.totalSales != null && row.original.totalSales.toString(),
         size: 120,
         enableSorting: true,
       },
@@ -294,7 +288,7 @@ export function useTableColumns({
         header: "Média venda mês",
         cell: ({ row }) => {
           const value = row.original.average6Months;
-          return !value ? "-" : `${value.toFixed(2)}`;
+          return value && `${value.toFixed(2)}`;
         },
         size: 150,
         enableSorting: true,
