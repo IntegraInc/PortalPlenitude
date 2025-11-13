@@ -23,8 +23,6 @@ export default async function AnaliseReposicao({ searchParams }: PageProps) {
   // const pageSize = Number(resolvedSearchParams?.pageSize) || 50;
   const familia = resolvedSearchParams?.familia || "";
 
-  console.log("familia", familia);
-
   // 🧩 Busca dos filtros
   const filtersRes = await fetch(
     "https://integrainc-senior-api.vercel.app/utils/filters",
@@ -69,8 +67,6 @@ export default async function AnaliseReposicao({ searchParams }: PageProps) {
       totalPages: number;
     };
   } = await productsRes.json();
-
-  console.log("filtersJson", filtersJson);
 
   return (
     <MainTable

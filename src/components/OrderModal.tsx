@@ -79,12 +79,8 @@ export default function OrderModal({
         })),
       };
 
-      console.log("OrderData gerado:", orderData);
-
       // ✅ Faz a requisição usando a action
       const result = await createBuyingOrder(orderData);
-
-      console.log("Resposta da API:", result);
 
       if (result.responseJson) {
         toast.success("Ordem de compra criada com sucesso!", {

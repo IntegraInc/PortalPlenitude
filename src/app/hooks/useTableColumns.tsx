@@ -169,15 +169,31 @@ export function useTableColumns({
         accessorKey: "description",
         id: "description",
         header: "Descrição",
-        size: 180,
+        size: 300, // Tamanho da coluna ajustado
         meta: { sticky: true, left: 240 },
         enableSorting: true,
         cell: ({ row }) => (
           <div
-            className="truncate max-w-[250px]"
-            title={row.original.description}
+            className="relative" // Adiciona a posição relativa para o tooltip
           >
-            {row.original.description || "-"}
+            <div
+              className="truncate max-w-[500px]" // Ajuste para garantir que o texto não ultrapasse a largura
+              title={row.original.description} // Tooltip nativo do HTML
+            >
+              {row.original.description || "-"}
+            </div>
+
+            {/* Tooltip customizado */}
+            <div
+              className="tooltip-content absolute bg-black text-white text-xs rounded px-2 py-1 invisible opacity-0 transition-opacity duration-50"
+              style={{
+                bottom: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+              }}
+            >
+              {row.original.description}
+            </div>
           </div>
         ),
       },

@@ -52,7 +52,6 @@ export default function MainTable({ filters, products }: MainTableProps) {
   // ✅ STATE para salvar os produtos selecionados
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
-  console.log("selectedProducts", selectedProducts);
   const familiaFromUrl = searchParams.get("familia") || "";
 
   const {
@@ -99,10 +98,10 @@ export default function MainTable({ filters, products }: MainTableProps) {
     setSelectedProducts(selectedProductsData);
 
     // Log para debug (opcional)
-    console.log("Produtos selecionados:", selectedProductsData);
   }, [rowSelection, table]);
 
   useEffect(() => {
+    setIsLoading(true);
     const newSearchParams = new URLSearchParams(searchParams.toString());
 
     if (selectedFamilia) {
@@ -127,20 +126,19 @@ export default function MainTable({ filters, products }: MainTableProps) {
     }
   }, [isLoading]);
 
-  const navigateToPage = (page: number) => {
-    setIsLoading(true);
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.set("page", page.toString());
-    router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  };
+  // const navigateToPage = (page: number) => {
+  //   setIsLoading(true);
+  //   const newSearchParams = new URLSearchParams(searchParams.toString());
+  //   newSearchParams.set("page", page.toString());
+  //   router.push(`?${newSearchParams.toString()}`, { scroll: false });
+  // };
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
     // ✅ Agora você tem acesso aos produtos selecionados no modal
-    console.log("Produtos para o modal:", selectedProducts);
   };
 
-  console.log("selectedFamilia", selectedFamilia);
+  console.log("products", products);
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -189,18 +187,23 @@ export default function MainTable({ filters, products }: MainTableProps) {
             </div>
           </div>
         )}
-
         <div className="min-w-full">
-          <table className="w-full divide-y divide-gray-200">
-            <TableBody
-              table={table}
-              dragState={dragState}
-              dragHandlers={dragHandlers}
-              columnOrder={columnOrder}
-              setColumnOrder={setColumnOrder}
-              setSelectProducts={setSelectProducts}
-            />
-          </table>
+          {products.length === 0 ? (
+            <div className="flex justify-center items-center min-h-[200px] text-gray-500">
+              Nenhum produto encontrado
+            </div>
+          ) : (
+            <table className="w-full divide-y divide-gray-200">
+              <TableBody
+                table={table}
+                dragState={dragState}
+                dragHandlers={dragHandlers}
+                columnOrder={columnOrder}
+                setColumnOrder={setColumnOrder}
+                setSelectProducts={setSelectProducts}
+              />
+            </table>
+          )}
         </div>
       </div>
 

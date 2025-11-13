@@ -20,7 +20,6 @@ export default function TableBody({
   dragState,
   dragHandlers,
   columnOrder,
-  setSelectProducts,
   setColumnOrder,
 }: TableBodyProps) {
   const { dragOverColumn, isDragging, draggedColumn } = dragState;
@@ -128,7 +127,7 @@ export default function TableBody({
                     }
                   `}
                   style={{
-                    width: header.getSize(),
+                    width: "header.getSize()",
                     left: isSticky ? stickyLeft : undefined,
                     padding: isSticky ? "6px 8px" : "8px 12px",
                   }}
