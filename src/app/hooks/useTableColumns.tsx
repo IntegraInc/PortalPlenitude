@@ -343,7 +343,7 @@ export function useTableColumns({
     columns,
     table,
     selectedCount,
-    rowSelection,
+    rowSelection, // ✅ Adiciona isso
     setRowSelection,
     toggleAllRowsSelection,
     isAllSelected,

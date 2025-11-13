@@ -17,13 +17,6 @@ import OrderModal from "./OrderModal";
 interface MainTableProps {
   filters: FiltersData;
   products: Product[];
-  // pagination?: {
-  //   currentPage: number;
-  //   pageSize: number;
-  //   totalItems: number;
-  //   totalPages: number;
-  // };
-  // currentPage: number;
 }
 
 const AVAILABLE_COLUMNS = [
@@ -46,27 +39,18 @@ const AVAILABLE_COLUMNS = [
   { id: "orderQuantity", header: "Qtd. a Comprar" },
 ];
 
-export default function MainTable({
-  filters,
-  products,
-}: // pagination = {
-//   currentPage: 1,
-//   pageSize: 50,
-//   totalItems: 0,
-//   totalPages: 0,
-// },
-// currentPage: initialCurrentPage,
-MainTableProps) {
+export default function MainTable({ filters, products }: MainTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectProducts, setSelectProducts] = useState(false);
 
-  // const currentPageFromUrl =
-  //   Number(searchParams.get("page")) || initialCurrentPage;
-  // const pageSizeFromUrl =
-  //   Number(searchParams.get("pageSize")) || pagination.pageSize;
+  // ✅ STATE para salvar os produtos selecionados
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+
+  console.log("selectedProducts", selectedProducts);
   const familiaFromUrl = searchParams.get("familia") || "";
 
   const {
@@ -95,6 +79,7 @@ MainTableProps) {
     toggleAllRowsSelection,
     isAllSelected,
     isSomeSelected,
+    rowSelection,
   } = useTableColumns({
     filteredData,
     columnOrder,
@@ -102,6 +87,16 @@ MainTableProps) {
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
   });
+
+  // ✅ EFFECT para atualizar os produtos selecionados quando o rowSelection mudar
+  useEffect(() => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    const selectedProductsData = selectedRows.map((row) => row.original);
+    setSelectedProducts(selectedProductsData);
+
+    // Log para debug (opcional)
+    console.log("Produtos selecionados:", selectedProductsData);
+  }, [rowSelection, table]);
 
   useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -111,11 +106,6 @@ MainTableProps) {
     } else {
       newSearchParams.delete("familia");
     }
-    // ⚙️ Só reseta para página 1 se a família REALMENTE mudar
-    // const currentFamilia = searchParams.get("familia") || "";
-    // if (currentFamilia !== selectedFamilia) {
-    //   newSearchParams.set("page", "1");
-    // }
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   }, [selectedFamilia]);
 
@@ -140,25 +130,13 @@ MainTableProps) {
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   };
 
-  // ✅ CORREÇÃO: Mantém a página atual ao mudar o pageSize
-  // const changePageSize = (newPageSize: number) => {
-  //   setIsLoading(true);
-  //   const newSearchParams = new URLSearchParams(searchParams.toString());
-
-  //   // Calcula a nova página baseada no item atual
-  //   const firstItemIndex = (currentPageFromUrl - 1) * pageSizeFromUrl;
-  //   const newPage = Math.floor(firstItemIndex / newPageSize) + 1;
-
-  //   // Define os novos parâmetros
-  //   newSearchParams.set("pageSize", newPageSize.toString());
-  //   newSearchParams.set("page", newPage.toString());
-
-  //   router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  // };
-
   const handleOpenModal = () => {
     setIsModalOpen(true);
+    // ✅ Agora você tem acesso aos produtos selecionados no modal
+    console.log("Produtos para o modal:", selectedProducts);
   };
+
+  console.log("selectedFamilia", selectedFamilia);
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -199,9 +177,6 @@ MainTableProps) {
                 <p className="text-sm font-medium text-gray-700">
                   Carregando produtos...
                 </p>
-                {/* <p className="text-xs text-gray-500 mt-1">
-                  Página {currentPageFromUrl} de {pagination.totalPages}
-                </p> */}
               </div>
 
               <div className="w-32 bg-gray-200 rounded-full h-1">
@@ -219,21 +194,11 @@ MainTableProps) {
               dragHandlers={dragHandlers}
               columnOrder={columnOrder}
               setColumnOrder={setColumnOrder}
+              setSelectProducts={setSelectProducts}
             />
           </table>
         </div>
       </div>
-
-      {/* <Pagination
-        currentPage={currentPageFromUrl}
-        pageSize={pageSizeFromUrl}
-        totalItems={pagination?.totalItems || 0}
-        totalPages={pagination?.totalPages || 0}
-        currentItemsCount={filteredData?.length || 0}
-        isLoading={isLoading}
-        onPageChange={navigateToPage}
-        onPageSizeChange={changePageSize}
-      /> */}
 
       <TableFooterInfo
         displayedItemsCount={filteredData?.length || 0}
@@ -246,7 +211,7 @@ MainTableProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         filters={filters}
-        onSubmit={() => {}}
+        selectedProducts={selectedProducts} // ✅ Passa os produtos selecionados para o modal
       />
     </div>
   );

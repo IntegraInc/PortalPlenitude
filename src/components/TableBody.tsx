@@ -11,6 +11,8 @@ interface TableBodyProps {
   dragHandlers: any;
   columnOrder: string[];
   setColumnOrder: (order: string[]) => void;
+
+  setSelectProducts: any;
 }
 
 export default function TableBody({
@@ -18,6 +20,7 @@ export default function TableBody({
   dragState,
   dragHandlers,
   columnOrder,
+  setSelectProducts,
   setColumnOrder,
 }: TableBodyProps) {
   const { dragOverColumn, isDragging, draggedColumn } = dragState;
