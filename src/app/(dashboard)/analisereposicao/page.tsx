@@ -5,20 +5,25 @@ import { GetBearerToken } from "@/app/utils/getBearerToken";
 import MainTable from "@/components/MainTable";
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string;
     pageSize?: string;
     familia?: string;
-  };
+  }>;
 }
 
 export default async function AnaliseReposicao({ searchParams }: PageProps) {
   const bearerToken = await GetBearerToken();
 
+  // 🔧 AWAI T the searchParams Promise first
+  const resolvedSearchParams = await searchParams;
+
   // Configuração da paginação e filtros
-  const currentPage = Number(searchParams?.page) || 1;
-  const pageSize = Number(searchParams?.pageSize) || 50;
-  const familia = searchParams?.familia || "";
+  // const currentPage = Number(resolvedSearchParams?.page) || 1;
+  // const pageSize = Number(resolvedSearchParams?.pageSize) || 50;
+  const familia = resolvedSearchParams?.familia || "";
+
+  console.log("familia", familia);
 
   // 🧩 Busca dos filtros
   const filtersRes = await fetch(
@@ -33,29 +38,28 @@ export default async function AnaliseReposicao({ searchParams }: PageProps) {
     }
   );
 
-  if (!filtersRes.ok) {
-    throw new Error(`Erro ao buscar filtros: ${filtersRes.statusText}`);
-  }
-
   const filtersJson: FiltersResponse = await filtersRes.json();
 
-  // 🧩 Busca dos produtos - CORREÇÃO: Não force família padrão
-  let productsUrl = `https://integrainc-senior-api.vercel.app/analisys/all?page=${currentPage}&limit=${pageSize}`;
+  // // 🧩 Busca dos produtos - CORREÇÃO: Não force família padrão
+  // let productsUrl = `https://integrainc-senior-api.vercel.app/analisys/all?family=904`;
 
-  // ✅ Apenas adicione família se existir na URL, caso contrário busca todos
-  if (familia) {
-    productsUrl += `&family=${familia}`;
-  }
-  // ❌ REMOVIDO: else { productsUrl += `&family=010`; }
+  // // ✅ Apenas adicione família se existir na URL, caso contrário busca todos
+  // if (familia) {
+  //   productsUrl += `&family=${familia}`;
+  // }
 
-  const productsRes = await fetch(productsUrl, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearerToken ?? ""}`,
-    },
-    cache: "no-store",
-  });
+  // 🔧 CORREÇÃO: Use a URL construída corretamente
+  const productsRes = await fetch(
+    `https://integrainc-senior-api.vercel.app/analisys/all?family=${familia}`, // Use the constructed URL instead of the old one
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearerToken ?? ""}`,
+      },
+      cache: "no-store",
+    }
+  );
 
   const productsJson: ProductsResponse & {
     pagination?: {
@@ -66,22 +70,21 @@ export default async function AnaliseReposicao({ searchParams }: PageProps) {
     };
   } = await productsRes.json();
 
-  console.log("ProductsResponse", productsJson.data);
-  console.log("Pagination", productsJson.pagination);
+  console.log("filtersJson", filtersJson);
 
   return (
     <MainTable
       filters={filtersJson.data}
       products={productsJson.data || []} // ✅ Garante array vazio se não houver dados
-      pagination={
-        productsJson.pagination || {
-          currentPage,
-          pageSize,
-          totalItems: 0,
-          totalPages: 0,
-        }
-      }
-      currentPage={currentPage}
+      // pagination={
+      //   productsJson.pagination || {
+      //     currentPage,
+      //     pageSize,
+      //     totalItems: 0,
+      //     totalPages: 0,
+      //   }
+      // }
+      // currentPage={currentPage}
     />
   );
 }

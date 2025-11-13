@@ -19,7 +19,7 @@ const navigation = [
   },
   {
     name: "Análise de Reposição",
-    href: "/analisereposicao?page=1&pageSize=20",
+    href: "/analisereposicao?familia=904",
     icon: ChartBarSquareIcon,
     disabled: false,
   },

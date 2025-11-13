@@ -90,7 +90,7 @@ export default function TableHeader({
           onChange={(e) => setSelectedFamilia(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48"
         >
-          <option value="">Todas</option>
+          {/* <option value="">Todas</option> */}
           {filters.family.map((f) => (
             <option key={f.code} value={f.code}>
               {f.name}
