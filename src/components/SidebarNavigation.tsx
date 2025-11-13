@@ -39,59 +39,80 @@ export default function SidebarNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    setTimeout(() => setIsOpen(true), 50); // Pequeno delay para suavizar
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setTimeout(() => setIsOpen(false), 100); // Delay para permitir que o usuário mova o mouse
+  };
 
   return (
     <div
       className={classNames(
-        "fixed left-0 top-0 z-40 h-screen flex flex-col border-r border-gray-200 bg-white shadow-md transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 z-40 h-screen flex flex-col border-r border-gray-200 bg-white shadow-md transition-all duration-300 ease-in-out overflow-hidden",
         isOpen ? "w-64" : "w-16"
       )}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-center overflow-hidden">
+      <div className="flex h-16 items-center justify-center overflow-hidden border-b border-gray-100">
         {isOpen ? (
           <img
             src="/plenitude.jpg"
             alt="Plenitude"
-            className="w-32 transition-opacity"
+            className="w-32 transition-all duration-300 ease-in-out opacity-100 scale-100"
           />
         ) : (
           <img
             src="/plenitude.jpg"
             alt="Plenitude"
-            className="w-8 h-8 rounded-full transition-all"
+            className="w-8 h-8 rounded-full transition-all duration-300 ease-in-out opacity-100 scale-100"
           />
         )}
       </div>
 
       {/* Navegação */}
-      <nav className="flex flex-1 flex-col px-2 mt-4">
-        <ul role="list" className="space-y-2">
+      <nav className="flex flex-1 flex-col px-2 py-4">
+        <ul role="list" className="space-y-1">
           {navigation.map((item) => {
             const isActive =
               pathname === item.href ||
-              (pathname.startsWith(item.href) && item.href !== "/");
+              (pathname.startsWith(item.href.split("?")[0]) &&
+                item.href !== "/");
 
             return (
               <li key={item.name}>
                 {item.disabled ? (
                   <div
-                    className="group flex items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed opacity-50"
+                    className="group flex items-center gap-x-3 rounded-lg p-2 text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed opacity-50 transition-all duration-200"
                     title="Em breve"
                   >
-                    <item.icon className="h-6 w-6 shrink-0 text-gray-300" />
-                    {isOpen && <span>{item.name}</span>}
+                    <item.icon className="h-5 w-5 shrink-0 text-gray-300 transition-all duration-200" />
+                    <span
+                      className={classNames(
+                        "transition-all duration-300 ease-in-out whitespace-nowrap",
+                        isOpen
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 -translate-x-2"
+                      )}
+                    >
+                      {item.name}
+                    </span>
                   </div>
                 ) : (
                   <Link
                     href={item.href}
                     className={classNames(
                       isActive
-                        ? "bg-gray-100 text-indigo-600"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                      "group flex items-center gap-x-3 rounded-md p-2 text-sm font-semibold transition-all"
+                        ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 border-transparent",
+                      "group flex items-center gap-x-3 rounded-lg p-2 text-sm font-semibold transition-all duration-200 border"
                     )}
                     title={!isOpen ? item.name : ""}
                   >
@@ -100,10 +121,19 @@ export default function SidebarNavigation() {
                         isActive
                           ? "text-indigo-600"
                           : "text-gray-400 group-hover:text-indigo-600",
-                        "h-6 w-6 shrink-0"
+                        "h-5 w-5 shrink-0 transition-all duration-200"
                       )}
                     />
-                    {isOpen && <span>{item.name}</span>}
+                    <span
+                      className={classNames(
+                        "transition-all duration-300 ease-in-out whitespace-nowrap",
+                        isOpen
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 -translate-x-2"
+                      )}
+                    >
+                      {item.name}
+                    </span>
                   </Link>
                 )}
               </li>
@@ -117,7 +147,7 @@ export default function SidebarNavigation() {
             DestroyCookies();
             router.push("/login");
           }}
-          className="group flex items-center gap-x-3 rounded-md p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all"
+          className="group flex items-center gap-x-3 rounded-lg p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 border border-transparent hover:border-red-100"
           title={!isOpen ? "Encerrar sessão" : ""}
         >
           <svg
@@ -126,7 +156,7 @@ export default function SidebarNavigation() {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="h-6 w-6 text-gray-400 group-hover:text-red-600"
+            className="h-5 w-5 text-gray-400 group-hover:text-red-600 transition-all duration-200"
           >
             <path
               strokeLinecap="round"
@@ -134,7 +164,16 @@ export default function SidebarNavigation() {
               d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3h-8.25m0 0l3-3m-3 3l3 3"
             />
           </svg>
-          {isOpen && <span>Encerrar sessão</span>}
+          <span
+            className={classNames(
+              "transition-all duration-300 ease-in-out cursor:pointer whitespace-nowrap",
+              isOpen
+                ? "opacity-100 translate-x-0 cursor:pointer"
+                : " cursor:pointer opacity-0 -translate-x-2"
+            )}
+          >
+            Encerrar sessão
+          </span>
         </button>
       </nav>
     </div>
