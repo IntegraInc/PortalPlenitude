@@ -129,10 +129,19 @@ export function useTableColumns({
         accessorKey: "description",
         id: "description",
         header: "Descrição",
-        size: 250,
+        size: 180, // antes era 250
         meta: { sticky: true, left: 240 },
         enableSorting: true,
+        cell: ({ row }) => (
+          <div
+            className="truncate max-w-[250px]" // ✅ aplica largura real e corta texto
+            title={row.original.description}
+          >
+            {row.original.description || "-"}
+          </div>
+        ),
       },
+
       {
         accessorKey: "familyName",
         id: "familyName",
@@ -186,7 +195,7 @@ export function useTableColumns({
       {
         accessorKey: "stockTurnover",
         id: "stockTurnover",
-        header: "Giro de Estoque",
+        header: "Dias Estoque",
         cell: ({ row }) =>
           row.original.stockTurnover != null
             ? row.original.stockTurnover.toString()
@@ -205,7 +214,7 @@ export function useTableColumns({
       {
         accessorKey: "quantityToBuy",
         id: "quantityToBuy",
-        header: "Quantidade Comprar",
+        header: "Quantidade Sugerida",
         cell: ({ row }) =>
           row.original.quantityToBuy != null
             ? row.original.quantityToBuy.toString()

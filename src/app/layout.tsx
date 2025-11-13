@@ -22,10 +22,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={poppins.variable}>
       <body>
-        <>
-          {children}
-          <ToastContainer />
-        </>
+        {children}
+        <ToastContainer />
       </body>
     </html>
   );

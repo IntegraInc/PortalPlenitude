@@ -17,13 +17,13 @@ import OrderModal from "./OrderModal";
 interface MainTableProps {
   filters: FiltersData;
   products: Product[];
-  pagination?: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-  };
-  currentPage: number;
+  // pagination?: {
+  //   currentPage: number;
+  //   pageSize: number;
+  //   totalItems: number;
+  //   totalPages: number;
+  // };
+  // currentPage: number;
 }
 
 const AVAILABLE_COLUMNS = [
@@ -32,9 +32,9 @@ const AVAILABLE_COLUMNS = [
   { id: "lastPurchaseCost", header: "Último Custo" },
   { id: "availableStock", header: "Estoque Disponível" },
   { id: "physicalStock", header: "Estoque Físico" },
-  { id: "stockTurnover", header: "Giro de Estoque" },
+  { id: "stockTurnover", header: "Dias Estoque" },
   { id: "lastPurchaseDate", header: "Última Compra" },
-  { id: "quantityToBuy", header: "Quantidade Comprar" },
+  { id: "quantityToBuy", header: "Quantidade Sugerida" },
   { id: "totalSales", header: "Vendas Total" },
   { id: "average6Months", header: "Média venda mês" },
   { id: "monthlySales_NOV_2025", header: "NOV/2025" },
@@ -49,24 +49,24 @@ const AVAILABLE_COLUMNS = [
 export default function MainTable({
   filters,
   products,
-  pagination = {
-    currentPage: 1,
-    pageSize: 50,
-    totalItems: 0,
-    totalPages: 0,
-  },
-  currentPage: initialCurrentPage,
-}: MainTableProps) {
+}: // pagination = {
+//   currentPage: 1,
+//   pageSize: 50,
+//   totalItems: 0,
+//   totalPages: 0,
+// },
+// currentPage: initialCurrentPage,
+MainTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const currentPageFromUrl =
-    Number(searchParams.get("page")) || initialCurrentPage;
-  const pageSizeFromUrl =
-    Number(searchParams.get("pageSize")) || pagination.pageSize;
+  // const currentPageFromUrl =
+  //   Number(searchParams.get("page")) || initialCurrentPage;
+  // const pageSizeFromUrl =
+  //   Number(searchParams.get("pageSize")) || pagination.pageSize;
   const familiaFromUrl = searchParams.get("familia") || "";
 
   const {
@@ -111,12 +111,11 @@ export default function MainTable({
     } else {
       newSearchParams.delete("familia");
     }
-
     // ⚙️ Só reseta para página 1 se a família REALMENTE mudar
-    const currentFamilia = searchParams.get("familia") || "";
-    if (currentFamilia !== selectedFamilia) {
-      newSearchParams.set("page", "1");
-    }
+    // const currentFamilia = searchParams.get("familia") || "";
+    // if (currentFamilia !== selectedFamilia) {
+    //   newSearchParams.set("page", "1");
+    // }
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
   }, [selectedFamilia]);
 
@@ -142,20 +141,20 @@ export default function MainTable({
   };
 
   // ✅ CORREÇÃO: Mantém a página atual ao mudar o pageSize
-  const changePageSize = (newPageSize: number) => {
-    setIsLoading(true);
-    const newSearchParams = new URLSearchParams(searchParams.toString());
+  // const changePageSize = (newPageSize: number) => {
+  //   setIsLoading(true);
+  //   const newSearchParams = new URLSearchParams(searchParams.toString());
 
-    // Calcula a nova página baseada no item atual
-    const firstItemIndex = (currentPageFromUrl - 1) * pageSizeFromUrl;
-    const newPage = Math.floor(firstItemIndex / newPageSize) + 1;
+  //   // Calcula a nova página baseada no item atual
+  //   const firstItemIndex = (currentPageFromUrl - 1) * pageSizeFromUrl;
+  //   const newPage = Math.floor(firstItemIndex / newPageSize) + 1;
 
-    // Define os novos parâmetros
-    newSearchParams.set("pageSize", newPageSize.toString());
-    newSearchParams.set("page", newPage.toString());
+  //   // Define os novos parâmetros
+  //   newSearchParams.set("pageSize", newPageSize.toString());
+  //   newSearchParams.set("page", newPage.toString());
 
-    router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  };
+  //   router.push(`?${newSearchParams.toString()}`, { scroll: false });
+  // };
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -200,9 +199,9 @@ export default function MainTable({
                 <p className="text-sm font-medium text-gray-700">
                   Carregando produtos...
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                {/* <p className="text-xs text-gray-500 mt-1">
                   Página {currentPageFromUrl} de {pagination.totalPages}
-                </p>
+                </p> */}
               </div>
 
               <div className="w-32 bg-gray-200 rounded-full h-1">
@@ -225,7 +224,7 @@ export default function MainTable({
         </div>
       </div>
 
-      <Pagination
+      {/* <Pagination
         currentPage={currentPageFromUrl}
         pageSize={pageSizeFromUrl}
         totalItems={pagination?.totalItems || 0}
@@ -234,7 +233,7 @@ export default function MainTable({
         isLoading={isLoading}
         onPageChange={navigateToPage}
         onPageSizeChange={changePageSize}
-      />
+      /> */}
 
       <TableFooterInfo
         displayedItemsCount={filteredData?.length || 0}

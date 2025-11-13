@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import { flexRender, Table } from "@tanstack/react-table";
 import { Product } from "@/app/types/filterTypes";
-import { useState } from "react";
 
 interface TableBodyProps {
   table: Table<Product>;
@@ -27,46 +29,55 @@ export default function TableBody({
     handleDrop,
   } = dragHandlers;
 
-  // 👇 NOVO: controla qual menu está aberto
   const [openColumnMenu, setOpenColumnMenu] = useState<string | null>(null);
   const [columnFilters, setColumnFilters] = useState<
     Record<string, Set<string>>
   >({});
 
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Fecha automaticamente o menu ao clicar fora
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) setOpenColumnMenu(null);
+    };
+    document.addEventListener("pointerdown", handlePointerDown, {
+      capture: true,
+    });
+    return () =>
+      document.removeEventListener("pointerdown", handlePointerDown, {
+        capture: true,
+      } as any);
+  }, []);
+
   const getUniqueValues = (columnId: string) => {
     const values = new Set<string>();
-    table.getCoreRowModel().rows.forEach((row) => {
-      const val = row.getValue(columnId);
-      if (val !== null && val !== undefined && val !== "") {
-        values.add(String(val));
-      }
+    table.getRowModel().rows.forEach((row) => {
+      const v = row.getValue(columnId);
+      if (v !== null && v !== undefined && v !== "") values.add(String(v));
     });
     return Array.from(values);
   };
 
   const toggleValueVisibility = (columnId: string, value: string) => {
     setColumnFilters((prev) => {
-      const currentSet = new Set(prev[columnId] || []);
-      if (currentSet.has(value)) {
-        currentSet.delete(value);
-      } else {
-        currentSet.add(value);
-      }
-      return { ...prev, [columnId]: currentSet };
+      const next = new Set(prev[columnId] || []);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return { ...prev, [columnId]: next };
     });
   };
 
-  // Filtra as linhas conforme os valores ocultos de cada coluna
-  const filteredRows = table.getCoreRowModel().rows.filter((row) => {
-    return Object.entries(columnFilters).every(([colId, hiddenValues]) => {
+  const filteredRows = table.getRowModel().rows.filter((row) =>
+    Object.entries(columnFilters).every(([colId, hidden]) => {
       const val = String(row.getValue(colId) ?? "");
-      return !hiddenValues.has(val);
-    });
-  });
+      return !hidden.has(val);
+    })
+  );
+
   return (
     <>
       <thead className="bg-gray-50 select-none sticky top-0 z-30">
-        {/* Aumentei o z-index para 30 */}
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
@@ -75,6 +86,8 @@ export default function TableBody({
               const isSticky = (header.column.columnDef.meta as any)?.sticky;
               const stickyLeft = (header.column.columnDef.meta as any)?.left;
               const canSort = header.column.getCanSort();
+              const sortHandler = header.column.getToggleSortingHandler();
+              const isFiltered = columnFilters[header.id]?.size > 0;
 
               return (
                 <th
@@ -88,14 +101,11 @@ export default function TableBody({
                     handleDrop(e, header.id, columnOrder, setColumnOrder)
                   }
                   onClick={
-                    canSort
-                      ? header.column.getToggleSortingHandler()
+                    canSort && openColumnMenu !== header.id
+                      ? sortHandler
                       : undefined
                   }
-                  className={`
-                    text-left text-xs font-semibold text-gray-600 
-                    uppercase tracking-wider transition-all duration-200 ease-in-out
-                    relative group whitespace-nowrap border-r border-gray-200
+                  className={`text-left text-xs font-semibold text-gray-600 uppercase tracking-wider relative group whitespace-nowrap border-r border-gray-200
                     ${isDragging ? "cursor-grabbing" : "cursor-grab"}
                     ${canSort ? "hover:bg-gray-200 cursor-pointer" : ""}
                     ${
@@ -110,7 +120,7 @@ export default function TableBody({
                     }
                     ${
                       isSticky
-                        ? "sticky z-40 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]" /* Aumentei z-index para 40 */
+                        ? "sticky z-40 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
                         : ""
                     }
                   `}
@@ -165,29 +175,16 @@ export default function TableBody({
                         </span>
                       )}
                     </span>
-                    {/* <div
-                      className={`ml-1 transition-opacity duration-200 flex-shrink-0 ${
-                        isDragging
-                          ? "opacity-0"
-                          : "opacity-0 group-hover:opacity-70"
-                      }`}
+
+                    {/* menu */}
+                    <div
+                      className="relative flex items-center"
+                      ref={(el) => {
+                        if (openColumnMenu === header.id) menuRef.current = el;
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                     >
-                      <svg
-                        className="w-3 h-3 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 8h16M4 16h16"
-                        />
-                      </svg>
-                    </div> */}
-                    {/* Ícone de menu + dropdown */}
-                    <div className="relative ml-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -196,11 +193,13 @@ export default function TableBody({
                           );
                         }}
                         className={`p-1 rounded hover:bg-gray-200 transition ${
-                          openColumnMenu === header.id ? "bg-gray-200" : ""
+                          isFiltered
+                            ? "bg-indigo-100 text-indigo-600"
+                            : "text-gray-600"
                         }`}
                       >
                         <svg
-                          className="w-3.5 h-3.5 text-gray-600"
+                          className="w-3.5 h-3.5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -214,28 +213,55 @@ export default function TableBody({
                         </svg>
                       </button>
 
-                      {/* Dropdown */}
                       {openColumnMenu === header.id && (
-                        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-48 p-2 max-h-64 overflow-y-auto">
-                          <p className="text-xs text-gray-500 mb-1 font-semibold truncate">
-                            Filtrar {header.column.columnDef.header as string}
-                          </p>
-                          <hr className="my-1" />
-                          {getUniqueValues(header.id).map((val) => (
-                            <label
-                              key={val}
-                              className="flex items-center text-xs gap-2 px-1 py-0.5 hover:bg-gray-100 cursor-pointer"
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-6 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-56 p-2 max-h-72 overflow-y-auto"
+                          onClick={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs text-gray-600 font-semibold truncate">
+                              Filtrar {header.column.columnDef.header as string}
+                            </p>
+                            <button
+                              className="text-[11px] px-2 py-0.5 rounded hover:bg-gray-100"
+                              onClick={() =>
+                                setColumnFilters((prev) => {
+                                  const { [header.id]: _, ...rest } = prev;
+                                  return rest;
+                                })
+                              }
                             >
-                              <input
-                                type="checkbox"
-                                checked={!columnFilters[header.id]?.has(val)}
-                                onChange={() =>
-                                  toggleValueVisibility(header.id, val)
-                                }
-                              />
-                              <span className="truncate">{val}</span>
-                            </label>
-                          ))}
+                              Limpar
+                            </button>
+                          </div>
+                          <hr className="my-1" />
+
+                          {getUniqueValues(header.id).map((val) => {
+                            const hidden =
+                              columnFilters[header.id]?.has(val) ?? false;
+                            return (
+                              <label
+                                key={val}
+                                className="flex items-center text-xs gap-2 px-1 py-0.5 hover:bg-gray-100 cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!hidden}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    toggleValueVisibility(header.id, val);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className="truncate">{val}</span>
+                              </label>
+                            );
+                          })}
+
                           {getUniqueValues(header.id).length === 0 && (
                             <p className="text-xs text-gray-400 text-center py-2">
                               Sem valores
@@ -251,8 +277,8 @@ export default function TableBody({
           </tr>
         ))}
       </thead>
+
       <tbody className="divide-y divide-gray-100 bg-white relative z-10">
-        {/* Adicionei z-10 aqui */}
         {filteredRows.map((row) => (
           <tr
             key={row.id}
@@ -270,16 +296,17 @@ export default function TableBody({
               return (
                 <td
                   key={cell.id}
-                  className={`
-                    text-sm text-gray-700 whitespace-nowrap border-r border-gray-100
-                    ${
-                      isSticky
-                        ? "sticky z-20 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
-                        : ""
-                    }
-                    ${isSticky && isSelected ? "bg-blue-50" : ""}
-                    ${isSticky && !isSelected ? "bg-white" : ""}
-                  `}
+                  className={`text-sm text-gray-700 whitespace-nowrap border-r border-gray-100 ${
+                    isSticky
+                      ? "sticky z-20 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
+                      : ""
+                  } ${
+                    isSticky && isSelected
+                      ? "bg-blue-50"
+                      : isSticky
+                      ? "bg-white"
+                      : ""
+                  }`}
                   style={{
                     width: cell.column.getSize(),
                     left: isSticky ? stickyLeft : undefined,
