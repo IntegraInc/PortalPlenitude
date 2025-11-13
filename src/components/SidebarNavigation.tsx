@@ -43,12 +43,12 @@ export default function SidebarNavigation() {
 
   const handleMouseEnter = () => {
     setIsHovering(true);
-    setTimeout(() => setIsOpen(true), 50); // Pequeno delay para suavizar
+    setTimeout(() => setIsOpen(true), 50);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-    setTimeout(() => setIsOpen(false), 100); // Delay para permitir que o usuário mova o mouse
+    setTimeout(() => setIsOpen(false), 100);
   };
 
   return (
@@ -60,21 +60,40 @@ export default function SidebarNavigation() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-center overflow-hidden border-b border-gray-100">
-        {isOpen ? (
-          <img
-            src="/plenitude.jpg"
-            alt="Plenitude"
-            className="w-32 transition-all duration-300 ease-in-out opacity-100 scale-100"
-          />
-        ) : (
-          <img
-            src="/plenitude.jpg"
-            alt="Plenitude"
-            className="w-8 h-8 rounded-full transition-all duration-300 ease-in-out opacity-100 scale-100"
-          />
-        )}
+      {/* Logo com transição suave */}
+      <div className="flex h-16 items-center justify-center overflow-hidden border-b border-gray-100 relative">
+        {/* Imagem pequena (sempre visível) */}
+        <img
+          src="/plenitudesemfundo.png"
+          alt="Plenitude"
+          className={classNames(
+            "absolute transition-all duration-300 ease-in-out",
+            isOpen
+              ? "opacity-0 scale-50 rotate-90"
+              : "opacity-100 scale-100 rotate-0"
+          )}
+          style={{
+            width: "32px",
+            height: "32px",
+            transform: isOpen
+              ? "scale(0.5) rotate(90deg)"
+              : "scale(1) rotate(0deg)",
+          }}
+        />
+
+        {/* Imagem grande (aparece quando aberto) */}
+        <img
+          src="/plenitude.jpg"
+          alt="Plenitude"
+          className={classNames(
+            "absolute transition-all duration-300 ease-in-out",
+            isOpen ? "opacity-100 scale-100" : "opacity-0 scale-150"
+          )}
+          style={{
+            width: "180px",
+            transform: isOpen ? "scale(1)" : "scale(1.5)",
+          }}
+        />
       </div>
 
       {/* Navegação */}
@@ -147,7 +166,7 @@ export default function SidebarNavigation() {
             DestroyCookies();
             router.push("/login");
           }}
-          className="group flex items-center gap-x-3 rounded-lg p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 border border-transparent hover:border-red-100"
+          className="group flex items-center gap-x-3 rounded-lg p-2 mt-auto text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 border border-transparent hover:border-red-100 cursor-pointer"
           title={!isOpen ? "Encerrar sessão" : ""}
         >
           <svg
@@ -166,10 +185,8 @@ export default function SidebarNavigation() {
           </svg>
           <span
             className={classNames(
-              "transition-all duration-300 ease-in-out cursor:pointer whitespace-nowrap",
-              isOpen
-                ? "opacity-100 translate-x-0 cursor:pointer"
-                : " cursor:pointer opacity-0 -translate-x-2"
+              "transition-all duration-300 ease-in-out whitespace-nowrap cursor-pointer",
+              isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
             )}
           >
             Encerrar sessão
