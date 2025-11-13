@@ -266,7 +266,7 @@ export function useTableColumns({
       {
         accessorKey: "quantityToBuy",
         id: "quantityToBuy",
-        header: "Quantidade Sugerida",
+        header: "Qtd.Sugerida",
         cell: ({ row }) =>
           row.original.quantityToBuy != null &&
           row.original.quantityToBuy.toString(),
