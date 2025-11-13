@@ -13,7 +13,7 @@ import {
   SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 
 interface UseTableColumnsProps {
   filteredData: Product[];
@@ -329,7 +329,14 @@ export function useTableColumns({
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
   });
+  useEffect(() => {
+    const allCols = table.getAllLeafColumns().map((c) => c.id);
 
+    // Se alguma coluna estiver faltando na columnOrder → corrigir automaticamente
+    if (allCols.some((id) => !columnOrder.includes(id))) {
+      setColumnOrder(allCols);
+    }
+  }, [table]);
   const selectedCount = Object.keys(rowSelection).length;
 
   return {
