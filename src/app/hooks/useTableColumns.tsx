@@ -15,6 +15,52 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState, useCallback, useEffect } from "react";
 
+// ✅ Componente separado para o input de quantidade
+interface OrderQuantityInputProps {
+  productCode: string;
+  initialQuantity: number;
+  onQuantityChange: (productCode: string, quantity: number) => void;
+}
+
+const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
+  productCode,
+  initialQuantity,
+  onQuantityChange,
+}) => {
+  const [localQuantity, setLocalQuantity] = useState(initialQuantity);
+
+  // Sincroniza quando a quantidade inicial muda externamente
+  useEffect(() => {
+    setLocalQuantity(initialQuantity);
+  }, [initialQuantity]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur(); // Dispara o onBlur
+    }
+  };
+
+  const handleBlur = () => {
+    const newQuantity = parseInt(String(localQuantity)) || 0;
+    onQuantityChange(productCode, newQuantity);
+  };
+
+  return (
+    <input
+      type="number"
+      min="0"
+      value={localQuantity}
+      onChange={(e) => {
+        const value = parseInt(e.target.value) || 0;
+        setLocalQuantity(value);
+      }}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
+      className="w-20 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
+    />
+  );
+};
+
 interface UseTableColumnsProps {
   filteredData: Product[];
   columnOrder: ColumnOrderState;
@@ -351,15 +397,10 @@ export function useTableColumns({
             orderQuantities[productCode] ?? row.original.quantityToBuy ?? 0;
 
           return (
-            <input
-              type="number"
-              min="0"
-              value={currentQuantity}
-              onChange={(e) => {
-                const newQuantity = parseInt(e.target.value) || 0;
-                updateOrderQuantity(productCode, newQuantity);
-              }}
-              className="w-20 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500"
+            <OrderQuantityInput
+              productCode={productCode}
+              initialQuantity={currentQuantity}
+              onQuantityChange={updateOrderQuantity}
             />
           );
         },
