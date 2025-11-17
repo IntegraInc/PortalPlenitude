@@ -2,7 +2,7 @@
 
 import { Dialog } from "@headlessui/react";
 import { FiltersData, Product } from "@/app/types/filterTypes";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import createBuyingOrder from "@/app/(dashboard)/analisereposicao/action";
 import { toast } from "react-toastify";
 
@@ -41,6 +41,101 @@ export default function OrderModal({
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Estados para os dropdowns
+  const [isFornecedorDropdownOpen, setIsFornecedorDropdownOpen] =
+    useState(false);
+  const [isCondicaoDropdownOpen, setIsCondicaoDropdownOpen] = useState(false);
+  const [isFormaDropdownOpen, setIsFormaDropdownOpen] = useState(false);
+
+  // Estados para busca
+  const [fornecedorSearch, setFornecedorSearch] = useState("");
+  const [condicaoSearch, setCondicaoSearch] = useState("");
+  const [formaSearch, setFormaSearch] = useState("");
+
+  // Refs para fechar dropdown ao clicar fora
+  const fornecedorDropdownRef = useRef<HTMLDivElement>(null);
+  const condicaoDropdownRef = useRef<HTMLDivElement>(null);
+  const formaDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fechar dropdowns ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        fornecedorDropdownRef.current &&
+        !fornecedorDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFornecedorDropdownOpen(false);
+      }
+      if (
+        condicaoDropdownRef.current &&
+        !condicaoDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCondicaoDropdownOpen(false);
+      }
+      if (
+        formaDropdownRef.current &&
+        !formaDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFormaDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Funções para selecionar valores
+  const handleFornecedorSelect = (code: string) => {
+    setModalData((prev) => ({ ...prev, fornecedor: code }));
+    setIsFornecedorDropdownOpen(false);
+    setFornecedorSearch("");
+  };
+
+  const handleCondicaoSelect = (code: string) => {
+    setModalData((prev) => ({ ...prev, condicao: code }));
+    setIsCondicaoDropdownOpen(false);
+    setCondicaoSearch("");
+  };
+
+  const handleFormaSelect = (code: string) => {
+    setModalData((prev) => ({ ...prev, forma: code }));
+    setIsFormaDropdownOpen(false);
+    setFormaSearch("");
+  };
+
+  // Funções para obter nomes selecionados
+  const getSelectedFornecedorName = () => {
+    const fornecedor = filters.supplyer.find(
+      (f) => f.code.toString() === modalData.fornecedor
+    );
+    return fornecedor ? fornecedor.name : "Selecione um fornecedor";
+  };
+
+  const getSelectedCondicaoName = () => {
+    const condicao = filters.paymentCondition.find(
+      (c) => c.code === modalData.condicao
+    );
+    return condicao ? condicao.name : "Selecione uma condição";
+  };
+
+  const getSelectedFormaName = () => {
+    const forma = filters.paymentMethod.find((f) => f.code === modalData.forma);
+    return forma ? forma.name : "Selecione uma forma";
+  };
+
+  // Filtrar opções baseado na busca
+  const filteredFornecedores = filters.supplyer.filter((f) =>
+    f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())
+  );
+
+  const filteredCondicoes = filters.paymentCondition.filter((c) =>
+    c.name.toLowerCase().includes(condicaoSearch.toLowerCase())
+  );
+
+  const filteredFormas = filters.paymentMethod.filter((f) =>
+    f.name.toLowerCase().includes(formaSearch.toLowerCase())
+  );
+
   const handleSubmit = async () => {
     if (!modalData.fornecedor || !modalData.condicao || !modalData.forma) {
       alert(
@@ -57,7 +152,6 @@ export default function OrderModal({
     setIsLoading(true);
 
     try {
-      // ✅ Monta o objeto OrderData conforme solicitado
       const orderData: OrderData = {
         paymentCondition: modalData.condicao,
         company: 1,
@@ -79,7 +173,6 @@ export default function OrderModal({
         })),
       };
 
-      // ✅ Faz a requisição usando a action
       const result = await createBuyingOrder(orderData);
 
       if (result.responseJson) {
@@ -101,6 +194,12 @@ export default function OrderModal({
 
   const handleClose = () => {
     setModalData({ fornecedor: "", condicao: "", forma: "" });
+    setIsFornecedorDropdownOpen(false);
+    setIsCondicaoDropdownOpen(false);
+    setIsFormaDropdownOpen(false);
+    setFornecedorSearch("");
+    setCondicaoSearch("");
+    setFormaSearch("");
     onClose();
   };
 
@@ -128,70 +227,279 @@ export default function OrderModal({
           </p>
         </div>
 
-        {/* Fornecedor */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+        {/* Fornecedor - Combobox */}
+        <div className="flex flex-col relative" ref={fornecedorDropdownRef}>
+          <label className="text-sm font-medium text-gray-700 mb-1">
             Fornecedor *
           </label>
-          <select
-            value={modalData.fornecedor}
-            onChange={(e) =>
-              setModalData((prev) => ({ ...prev, fornecedor: e.target.value }))
+          <button
+            onClick={() =>
+              setIsFornecedorDropdownOpen(!isFornecedorDropdownOpen)
             }
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             disabled={isLoading}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full text-left bg-white hover:bg-gray-50 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Selecione um fornecedor</option>
-            {filters.supplyer.map((f) => (
-              <option key={f.code} value={f.code}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+            <span className="truncate">{getSelectedFornecedorName()}</span>
+            <div className="flex items-center gap-1">
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  isFornecedorDropdownOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </button>
+
+          {isFornecedorDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+              {/* Campo de busca dentro do dropdown */}
+              <div className="p-2 border-b border-gray-200">
+                <input
+                  type="text"
+                  value={fornecedorSearch}
+                  onChange={(e) => setFornecedorSearch(e.target.value)}
+                  placeholder="Buscar fornecedor..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+
+              {/* Lista de fornecedores */}
+              <div className="max-h-60 overflow-y-auto">
+                {filteredFornecedores.length === 0 ? (
+                  <div className="text-sm text-gray-500 p-3 text-center">
+                    Nenhum fornecedor encontrado
+                  </div>
+                ) : (
+                  filteredFornecedores.map((f) => (
+                    <button
+                      key={f.code}
+                      onClick={() => handleFornecedorSelect(f.code.toString())}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
+                        modalData.fornecedor === f.code.toString()
+                          ? "bg-indigo-50 text-indigo-700"
+                          : ""
+                      }`}
+                    >
+                      <span className="truncate">{f.name}</span>
+                      {modalData.fornecedor === f.code.toString() && (
+                        <svg
+                          className="w-4 h-4 text-indigo-600"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Contador de resultados */}
+              <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
+                <div className="text-xs text-gray-500">
+                  {filteredFornecedores.length} de {filters.supplyer.length}{" "}
+                  fornecedores
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Condição de pagamento */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+        {/* Condição de pagamento - Combobox */}
+        <div className="flex flex-col relative" ref={condicaoDropdownRef}>
+          <label className="text-sm font-medium text-gray-700 mb-1">
             Condição de Pagamento *
           </label>
-          <select
-            value={modalData.condicao}
-            onChange={(e) =>
-              setModalData((prev) => ({ ...prev, condicao: e.target.value }))
-            }
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          <button
+            onClick={() => setIsCondicaoDropdownOpen(!isCondicaoDropdownOpen)}
             disabled={isLoading}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full text-left bg-white hover:bg-gray-50 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Selecione uma condição</option>
-            {filters.paymentCondition.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <span className="truncate">{getSelectedCondicaoName()}</span>
+            <div className="flex items-center gap-1">
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  isCondicaoDropdownOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </button>
+
+          {isCondicaoDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+              {/* Campo de busca dentro do dropdown */}
+              <div className="p-2 border-b border-gray-200">
+                <input
+                  type="text"
+                  value={condicaoSearch}
+                  onChange={(e) => setCondicaoSearch(e.target.value)}
+                  placeholder="Buscar condição..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+
+              {/* Lista de condições */}
+              <div className="max-h-60 overflow-y-auto">
+                {filteredCondicoes.length === 0 ? (
+                  <div className="text-sm text-gray-500 p-3 text-center">
+                    Nenhuma condição encontrada
+                  </div>
+                ) : (
+                  filteredCondicoes.map((c) => (
+                    <button
+                      key={c.code}
+                      onClick={() => handleCondicaoSelect(c.code)}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
+                        modalData.condicao === c.code
+                          ? "bg-indigo-50 text-indigo-700"
+                          : ""
+                      }`}
+                    >
+                      <span className="truncate">{c.name}</span>
+                      {modalData.condicao === c.code && (
+                        <svg
+                          className="w-4 h-4 text-indigo-600"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Contador de resultados */}
+              <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
+                <div className="text-xs text-gray-500">
+                  {filteredCondicoes.length} de{" "}
+                  {filters.paymentCondition.length} condições
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Forma de pagamento */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+        {/* Forma de pagamento - Combobox */}
+        <div className="flex flex-col relative" ref={formaDropdownRef}>
+          <label className="text-sm font-medium text-gray-700 mb-1">
             Forma de Pagamento *
           </label>
-          <select
-            value={modalData.forma}
-            onChange={(e) =>
-              setModalData((prev) => ({ ...prev, forma: e.target.value }))
-            }
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          <button
+            onClick={() => setIsFormaDropdownOpen(!isFormaDropdownOpen)}
             disabled={isLoading}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full text-left bg-white hover:bg-gray-50 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Selecione uma forma</option>
-            {filters.paymentMethod.map((f) => (
-              <option key={f.code} value={f.code}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+            <span className="truncate">{getSelectedFormaName()}</span>
+            <div className="flex items-center gap-1">
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  isFormaDropdownOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </button>
+
+          {isFormaDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+              {/* Campo de busca dentro do dropdown */}
+              <div className="p-2 border-b border-gray-200">
+                <input
+                  type="text"
+                  value={formaSearch}
+                  onChange={(e) => setFormaSearch(e.target.value)}
+                  placeholder="Buscar forma..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+
+              {/* Lista de formas */}
+              <div className="max-h-60 overflow-y-auto">
+                {filteredFormas.length === 0 ? (
+                  <div className="text-sm text-gray-500 p-3 text-center">
+                    Nenhuma forma encontrada
+                  </div>
+                ) : (
+                  filteredFormas.map((f) => (
+                    <button
+                      key={f.code}
+                      onClick={() => handleFormaSelect(f.code)}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
+                        modalData.forma === f.code
+                          ? "bg-indigo-50 text-indigo-700"
+                          : ""
+                      }`}
+                    >
+                      <span className="truncate">{f.name}</span>
+                      {modalData.forma === f.code && (
+                        <svg
+                          className="w-4 h-4 text-indigo-600"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Contador de resultados */}
+              <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
+                <div className="text-xs text-gray-500">
+                  {filteredFormas.length} de {filters.paymentMethod.length}{" "}
+                  formas
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Informações adicionais */}
