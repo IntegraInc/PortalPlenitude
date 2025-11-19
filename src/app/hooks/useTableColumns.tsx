@@ -27,32 +27,59 @@ const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
   initialQuantity,
   onQuantityChange,
 }) => {
-  const [localQuantity, setLocalQuantity] = useState(initialQuantity);
+  const [localQuantity, setLocalQuantity] = useState<string>(
+    initialQuantity > 0 ? initialQuantity.toString() : ""
+  );
 
   // Sincroniza quando a quantidade inicial muda externamente
   useEffect(() => {
-    setLocalQuantity(initialQuantity);
+    setLocalQuantity(initialQuantity > 0 ? initialQuantity.toString() : "");
   }, [initialQuantity]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.currentTarget.blur(); // Dispara o onBlur
+      e.preventDefault();
+      e.currentTarget.blur();
+      return;
+    }
+
+    // 👉 Captura TAB e move para o próximo input
+    if (e.key === "Tab") {
+      e.preventDefault();
+
+      const inputs = Array.from(
+        document.querySelectorAll("input[data-qty-input='true']")
+      ) as HTMLInputElement[];
+
+      const index = inputs.indexOf(e.currentTarget);
+
+      if (index >= 0 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
     }
   };
 
   const handleBlur = () => {
-    const newQuantity = parseInt(String(localQuantity)) || 0;
+    const newQuantity = parseInt(localQuantity) || 0;
     onQuantityChange(productCode, newQuantity);
+
+    // Atualiza o estado local para refletir o valor formatado
+    if (newQuantity === 0) {
+      setLocalQuantity("");
+    }
   };
 
   return (
     <input
       type="number"
       min="0"
+      data-qty-input="true"
       value={localQuantity}
       onChange={(e) => {
-        const value = parseInt(e.target.value) || 0;
-        setLocalQuantity(value);
+        const value = e.target.value;
+        if (value === "" || /^\d+$/.test(value)) {
+          setLocalQuantity(value);
+        }
       }}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
