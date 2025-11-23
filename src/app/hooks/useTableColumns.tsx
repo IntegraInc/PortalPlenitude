@@ -281,7 +281,11 @@ export function useTableColumns({
       {
         accessorKey: "familyCode",
         id: "familyCode",
-        header: "Cód. Família",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Cód. <br /> Família
+          </span>
+        ),
         cell: ({ row }) => row.original.familyCode,
         size: 120,
         enableSorting: true,
@@ -289,7 +293,11 @@ export function useTableColumns({
       {
         accessorKey: "lastPurchaseCost",
         id: "lastPurchaseCost",
-        header: "Ult.Custo",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Últ. <br /> Custo
+          </span>
+        ),
         cell: ({ row }) => {
           const value = row.original.lastPurchaseCost;
           // if (!value || value === "R$0,01") return "-";
@@ -298,10 +306,18 @@ export function useTableColumns({
         size: 140,
         enableSorting: true,
       },
+      // Correção: Envolva o JSX em uma função que retorna o elemento
       {
         accessorKey: "availableStock",
         id: "availableStock",
-        header: "Est.Disp",
+
+        // A propriedade 'header' deve ser uma função de template
+        header: () => (
+          <span className="whitespace-nowrap">
+            Est. <br /> Disp
+          </span>
+        ),
+
         cell: ({ row }) =>
           row.original.availableStock != null &&
           row.original.availableStock.toString(),
@@ -311,7 +327,11 @@ export function useTableColumns({
       {
         accessorKey: "physicalStock",
         id: "physicalStock",
-        header: "Est.Fisico",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Est. <br /> Físico
+          </span>
+        ),
         cell: ({ row }) =>
           row.original.physicalStock != null &&
           row.original.physicalStock.toString(),
@@ -321,7 +341,11 @@ export function useTableColumns({
       {
         accessorKey: "stockTurnover",
         id: "stockTurnover",
-        header: "Dias Estoque",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Dias <br /> Estoque
+          </span>
+        ),
         cell: ({ row }) =>
           row.original.stockTurnover != null &&
           row.original.stockTurnover.toString(),
@@ -331,7 +355,11 @@ export function useTableColumns({
       {
         accessorKey: "lastPurchaseDate",
         id: "lastPurchaseDate",
-        header: "Última Compra",
+        header: () => (
+          <span className="whitespace-nowrap">
+            últ. <br /> Compra
+          </span>
+        ),
         cell: ({ row }) => row.original.lastPurchaseDate,
         size: 130,
         enableSorting: true,
@@ -339,7 +367,11 @@ export function useTableColumns({
       {
         accessorKey: "quantityToBuy",
         id: "quantityToBuy",
-        header: "Qtd.Sugerida",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Qtd. <br /> Sugerida
+          </span>
+        ),
         cell: ({ row }) =>
           row.original.quantityToBuy != null &&
           row.original.quantityToBuy.toString(),
@@ -349,7 +381,11 @@ export function useTableColumns({
       {
         accessorKey: "totalSales",
         id: "totalSales",
-        header: "Vendas Total",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Vendas <br /> Total
+          </span>
+        ),
         cell: ({ row }) =>
           row.original.totalSales != null && row.original.totalSales.toString(),
         size: 120,
@@ -358,10 +394,14 @@ export function useTableColumns({
       {
         accessorKey: "average6Months",
         id: "average6Months",
-        header: "Média venda mês",
+        header: () => (
+          <span className="whitespace-nowrap">
+            Média <br /> Venda Mês
+          </span>
+        ),
         cell: ({ row }) => {
           const value = row.original.average6Months;
-          return value && `${value.toFixed(2)}`;
+          return value && `${value}`;
         },
         size: 150,
         enableSorting: true,
