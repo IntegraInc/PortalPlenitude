@@ -68,7 +68,6 @@ export default async function AnaliseReposicao({ searchParams }: PageProps) {
     };
   } = await productsRes.json();
 
-  console.log("productsRes", productsJson.data);
   return (
     <MainTable
       filters={filtersJson.data}

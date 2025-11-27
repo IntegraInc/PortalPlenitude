@@ -138,8 +138,6 @@ export default function MainTable({ filters, products }: MainTableProps) {
     // ✅ Agora você tem acesso aos produtos selecionados no modal
   };
 
-  console.log("products", products);
-
   return (
     <div className="w-full h-full flex flex-col">
       <TableHeader
