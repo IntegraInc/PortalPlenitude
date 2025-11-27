@@ -175,18 +175,26 @@ export default function OrderModal({
 
       const result = await createBuyingOrder(orderData);
 
-      if (result.responseJson) {
-        toast.success("Ordem de compra criada com sucesso!", {
+      if (result.responseJson.success) {
+        toast.success(result.responseJson.message, {
           autoClose: 2000,
         });
         setModalData({ fornecedor: "", condicao: "", forma: "" });
         onClose();
       } else {
-        throw new Error("Erro ao criar ordem de compra");
+        toast.error(result.responseJson.message, {
+          autoClose: 2000,
+        });
+        // throw new Error("Erro ao criar ordem de compra");
       }
     } catch (error) {
       console.error("Erro ao criar ordem de compra:", error);
-      alert("Erro ao criar ordem de compra. Tente novamente.");
+      toast.error(
+        "Ocorreu um erro inesperado ao gerar orderm de compra. Contate o administrador do sistema.",
+        {
+          autoClose: 2000,
+        }
+      );
     } finally {
       setIsLoading(false);
     }
