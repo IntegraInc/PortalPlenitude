@@ -176,16 +176,18 @@ export default function OrderModal({
       const result = await createBuyingOrder(orderData);
 
       if (result.responseJson.success) {
-        toast.success(result.responseJson.message, {
-          autoClose: 2000,
-        });
+        toast.success(
+          `${result.responseJson.message} OC: ${result.responseJson.data.orderNumber}`,
+          {
+            autoClose: 5000,
+          }
+        );
         setModalData({ fornecedor: "", condicao: "", forma: "" });
         onClose();
       } else {
         toast.error(result.responseJson.message, {
-          autoClose: 2000,
+          autoClose: 5000,
         });
-        // throw new Error("Erro ao criar ordem de compra");
       }
     } catch (error) {
       console.error("Erro ao criar ordem de compra:", error);

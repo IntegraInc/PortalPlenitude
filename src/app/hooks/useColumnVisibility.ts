@@ -36,7 +36,6 @@ export function useColumnVisibility() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("Loaded column visibility from localStorage:", parsed);
         setColumnVisibility(parsed);
       } catch (error) {
         console.error("Erro ao carregar visibilidade das colunas:", error);
@@ -48,7 +47,6 @@ export function useColumnVisibility() {
       }
     } else {
       // ✅ PRIMEIRA VEZ: Salva o padrão no localStorage
-      console.log("First load: saving initial visibility to localStorage");
       localStorage.setItem(
         "table-column-visibility",
         JSON.stringify(INITIAL_VISIBILITY)
