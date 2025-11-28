@@ -160,19 +160,18 @@ export default function OrderModal({
         products: selectedProducts.map((product) => ({
           productCode: product.productCode,
           orderQuantity:
-            orderQuantities[product.productCode] || product.quantityToBuy || 0,
+            orderQuantities[product.productCode] || product.orderQuantity || 0,
           unityPrice: product.lastPurchaseCost
             ? parseFloat(
-                product.lastPurchaseCost
-                  .replace("R$", "")
-                  .replace(/\./g, "")
-                  .replace(",", ".")
-                  .trim()
-              )
+              product.lastPurchaseCost
+                .replace("R$", "")
+                .replace(/\./g, "")
+                .replace(",", ".")
+                .trim()
+            )
             : 0,
         })),
       };
-
       const result = await createBuyingOrder(orderData);
 
       if (result.responseJson.success) {
@@ -252,9 +251,8 @@ export default function OrderModal({
             <span className="truncate">{getSelectedFornecedorName()}</span>
             <div className="flex items-center gap-1">
               <svg
-                className={`w-4 h-4 transition-transform ${
-                  isFornecedorDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${isFornecedorDropdownOpen ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -294,11 +292,10 @@ export default function OrderModal({
                     <button
                       key={f.code}
                       onClick={() => handleFornecedorSelect(f.code.toString())}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                        modalData.fornecedor === f.code.toString()
-                          ? "bg-indigo-50 text-indigo-700"
-                          : ""
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${modalData.fornecedor === f.code.toString()
+                        ? "bg-indigo-50 text-indigo-700"
+                        : ""
+                        }`}
                     >
                       <span className="truncate">{f.name}</span>
                       {modalData.fornecedor === f.code.toString() && (
@@ -343,9 +340,8 @@ export default function OrderModal({
             <span className="truncate">{getSelectedCondicaoName()}</span>
             <div className="flex items-center gap-1">
               <svg
-                className={`w-4 h-4 transition-transform ${
-                  isCondicaoDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${isCondicaoDropdownOpen ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -385,11 +381,10 @@ export default function OrderModal({
                     <button
                       key={c.code}
                       onClick={() => handleCondicaoSelect(c.code)}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                        modalData.condicao === c.code
-                          ? "bg-indigo-50 text-indigo-700"
-                          : ""
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${modalData.condicao === c.code
+                        ? "bg-indigo-50 text-indigo-700"
+                        : ""
+                        }`}
                     >
                       <span className="truncate">{c.name}</span>
                       {modalData.condicao === c.code && (
@@ -434,9 +429,8 @@ export default function OrderModal({
             <span className="truncate">{getSelectedFormaName()}</span>
             <div className="flex items-center gap-1">
               <svg
-                className={`w-4 h-4 transition-transform ${
-                  isFormaDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${isFormaDropdownOpen ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -476,11 +470,10 @@ export default function OrderModal({
                     <button
                       key={f.code}
                       onClick={() => handleFormaSelect(f.code)}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                        modalData.forma === f.code
-                          ? "bg-indigo-50 text-indigo-700"
-                          : ""
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${modalData.forma === f.code
+                        ? "bg-indigo-50 text-indigo-700"
+                        : ""
+                        }`}
                     >
                       <span className="truncate">{f.name}</span>
                       {modalData.forma === f.code && (
