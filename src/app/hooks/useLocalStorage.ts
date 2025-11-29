@@ -31,7 +31,29 @@ export function useLocalStorage() {
   const clearPersistedColumnOrder = () => {
     try {
       localStorage.removeItem(COLUMN_ORDER_STORAGE_KEY);
-      setColumnOrder([]);
+      setColumnOrder([
+        "select",
+        "productCode",
+        "barcode",
+        "description",
+        "familyName",
+        "familyCode",
+        "lastPurchaseCost",
+        "availableStock",
+        "physicalStock",
+        "stockTurnover",
+        "lastPurchaseDate",
+        "quantityToBuy",
+        "totalSales",
+        "average6Months",
+        "monthlySales_NOV_2025",
+        "monthlySales_OCT_2025",
+        "monthlySales_SEP_2025",
+        "monthlySales_AUG_2025",
+        "monthlySales_JUL_2025",
+        "monthlySales_JUN_2025",
+        "orderQuantity",
+      ]);
       toast.success("Ordem das colunas resetada para o padrão!", {
         autoClose: 2000,
       });
