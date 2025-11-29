@@ -504,12 +504,12 @@ export function useTableColumns({
     enableRowSelection: true,
   });
 
-  useEffect(() => {
-    const allCols = table.getAllLeafColumns().map((c) => c.id);
-    if (allCols.some((id) => !columnOrder.includes(id))) {
-      setColumnOrder(allCols);
-    }
-  }, [table]);
+  // useEffect(() => {
+  //   const allCols = table.getAllLeafColumns().map((c) => c.id);
+  //   if (allCols.some((id) => !columnOrder.includes(id))) {
+  //     setColumnOrder(allCols);
+  //   }
+  // }, [table]);
 
   const selectedCount = Object.keys(rowSelection).length;
 
