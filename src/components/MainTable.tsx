@@ -30,12 +30,12 @@ const AVAILABLE_COLUMNS = [
   { id: "quantityToBuy", header: "Quantidade Sugerida" },
   { id: "totalSales", header: "Vendas Total" },
   { id: "average6Months", header: "Média venda mês" },
-  { id: "monthlySales_NOV_2025", header: "NOV/2025" },
-  { id: "monthlySales_OCT_2025", header: "OUT/2025" },
-  { id: "monthlySales_SEP_2025", header: "SET/2025" },
-  { id: "monthlySales_AUG_2025", header: "AGO/2025" },
-  { id: "monthlySales_JUL_2025", header: "JUL/2025" },
-  { id: "monthlySales_JUN_2025", header: "JUN/2025" },
+  { id: "monthlySales_NOV_2025", header: "DEZ/2025" },
+  { id: "monthlySales_OCT_2025", header: "NOV/2025" },
+  { id: "monthlySales_SEP_2025", header: "OCT/2025" },
+  { id: "monthlySales_AUG_2025", header: "SEP/2025" },
+  { id: "monthlySales_JUL_2025", header: "AUG/2025" },
+  { id: "monthlySales_JUN_2025", header: "JUL/2025" },
   { id: "orderQuantity", header: "Qtd. a Comprar" },
 ];
 

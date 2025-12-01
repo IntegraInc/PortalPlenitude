@@ -166,6 +166,9 @@ export function useTableColumns({
     return monthlySale?.total || 0;
   }, []);
 
+
+
+
   const toggleAllRowsSelection = useCallback(() => {
     if (Object.keys(rowSelection).length === filteredData.length) {
       setRowSelection({});
@@ -409,48 +412,48 @@ export function useTableColumns({
       {
         accessorKey: "monthlySales_NOV_2025",
         id: "monthlySales_NOV_2025",
-        header: "NOV/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "NOV/2025"),
+        header: "DEZ/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "DEC/2025"),
         size: 100,
         enableSorting: true,
       },
       {
         accessorKey: "monthlySales_OCT_2025",
         id: "monthlySales_OCT_2025",
-        header: "OUT/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "OCT/2025"),
+        header: "NOV/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "NOV/2025"),
         size: 100,
         enableSorting: true,
       },
       {
         accessorKey: "monthlySales_SEP_2025",
         id: "monthlySales_SEP_2025",
-        header: "SET/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "SEP/2025"),
+        header: "OUT/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "OCT/2025"),
         size: 100,
         enableSorting: true,
       },
       {
         accessorKey: "monthlySales_AUG_2025",
         id: "monthlySales_AUG_2025",
-        header: "AGO/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
+        header: "SET/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "SEP/2025"),
         size: 100,
         enableSorting: true,
       },
       {
         accessorKey: "monthlySales_JUL_2025",
         id: "monthlySales_JUL_2025",
-        header: "JUL/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
+        header: "AGO/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
         size: 100,
         enableSorting: true,
       },
       {
         accessorKey: "monthlySales_JUN_2025",
         id: "monthlySales_JUN_2025",
-        header: "JUN/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "JUN/2025"),
+        header: "JUL/2025",
+        cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
         size: 100,
         enableSorting: true,
       },
