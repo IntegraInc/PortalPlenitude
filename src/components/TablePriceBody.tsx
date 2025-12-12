@@ -11,6 +11,8 @@ interface TablePriceBodyProps {
   dragHandlers: any;
   columnOrder: string[];
   setColumnOrder: (order: string[]) => void;
+  currentPage: number;
+  pageSize: number;
 }
 
 export default function TablePriceBody({
@@ -19,6 +21,8 @@ export default function TablePriceBody({
   dragHandlers,
   columnOrder,
   setColumnOrder,
+  currentPage,
+  pageSize,
 }: TablePriceBodyProps) {
   const { dragOverColumn, isDragging, draggedColumn } = dragState;
   const {
@@ -67,12 +71,18 @@ export default function TablePriceBody({
     });
   };
 
+  // 🔍 Aplica filtros de coluna
   const filteredRows = table.getRowModel().rows.filter((row) =>
     Object.entries(columnFilters).every(([colId, hidden]) => {
       const val = String(row.getValue(colId) ?? "");
       return !hidden.has(val);
     })
   );
+
+  // 🔢 Aplica paginação de frontend
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pageRows = filteredRows.slice(startIndex, endIndex);
 
   return (
     <>
@@ -277,7 +287,7 @@ export default function TablePriceBody({
       </thead>
 
       <tbody className="divide-y divide-gray-100 bg-white relative z-10">
-        {filteredRows.map((row) => (
+        {pageRows.map((row) => (
           <tr
             key={row.id}
             className={`hover:bg-gray-50 transition-colors duration-150 ${

@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  FiltersData,
-  Product,
-  TablePriceProduct,
-} from "@/app/types/filterTypes";
+import { FiltersData, TablePriceProduct } from "@/app/types/filterTypes";
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TableFooterInfo from "./TableFooterInfo";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { useDragAndDrop } from "@/app/hooks/useDragAndDrop";
-import { useTableFilters } from "@/app/hooks/useTableFilters";
 import { useColumnVisibility } from "@/app/hooks/useColumnVisibility";
-import OrderModal from "./OrderModal";
 import TablePriceHeader from "./TablePriceHeader";
 import { useTablePriceColumns } from "@/app/hooks/useTablePriceColumns";
 import TablePriceBody from "./TablePriceBody";
@@ -79,6 +73,17 @@ export default function MainTablePrice({
     () => searchParams.get("markup") || ""
   );
 
+  // 🔢 Paginação no front
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    const pageFromUrl = Number(searchParams.get("page") || "1");
+    return pageFromUrl > 0 ? pageFromUrl : 1;
+  });
+
+  const [pageSize, setPageSize] = useState<number>(() => {
+    const sizeFromUrl = Number(searchParams.get("pageSize") || "50");
+    return sizeFromUrl > 0 ? sizeFromUrl : 50;
+  });
+
   // 🔎 Filtro usando os produtos de tabela de preço
   const {
     filteredData,
@@ -87,6 +92,20 @@ export default function MainTablePrice({
     selectedFamilia,
     setSelectedFamilia,
   } = useTablePriceFilters((tablePriceProducts as any) || [], familiaFromUrl);
+
+  const totalItems = filteredData.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // Garante que a página atual nunca passe do total
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const fromItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const toItem =
+    totalItems === 0 ? 0 : Math.min(currentPage * pageSize, totalItems);
 
   const { columnOrder, setColumnOrder, clearPersistedColumnOrder } =
     useLocalStorage();
@@ -123,7 +142,18 @@ export default function MainTablePrice({
     setSelectedProducts(selectedProductsData);
   }, [rowSelection, table]);
 
-  // ✅ Sincroniza filtros com a URL
+  // ✅ Quando filtros mudam, volta para página 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    selectedFamilia,
+    selectedTablePrice,
+    marginPercent,
+    markupPercent,
+    searchTerm,
+  ]);
+
+  // ✅ Sincroniza filtros + paginação com a URL
   useEffect(() => {
     setIsLoading(true);
     const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -141,8 +171,18 @@ export default function MainTablePrice({
     if (markupPercent !== "") newSearchParams.set("markup", markupPercent);
     else newSearchParams.delete("markup");
 
+    newSearchParams.set("page", String(currentPage));
+    newSearchParams.set("pageSize", String(pageSize));
+
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  }, [selectedFamilia, selectedTablePrice, marginPercent, markupPercent]);
+  }, [
+    selectedFamilia,
+    selectedTablePrice,
+    marginPercent,
+    markupPercent,
+    currentPage,
+    pageSize,
+  ]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -160,6 +200,16 @@ export default function MainTablePrice({
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
+  };
+
+  const handleChangePage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > totalPages) return;
+    setCurrentPage(nextPage);
+  };
+
+  const handleChangePageSize = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
   };
 
   return (
@@ -230,6 +280,8 @@ export default function MainTablePrice({
                 dragHandlers={dragHandlers}
                 columnOrder={columnOrder}
                 setColumnOrder={setColumnOrder}
+                currentPage={currentPage}
+                pageSize={pageSize}
               />
             </table>
           )}
@@ -242,11 +294,56 @@ export default function MainTablePrice({
         hasCustomColumnOrder={columnOrder.length > 0}
         isDragging={dragState.isDragging}
       />
+
+      {/* Footer de paginação */}
+      <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+        <div>
+          Mostrando <strong>{fromItem}</strong>–<strong>{toItem}</strong> de{" "}
+          <strong>{totalItems}</strong> registro(s)
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <span>Linhas por página:</span>
+            <select
+              className="border border-gray-300 rounded px-2 py-1 text-xs"
+              value={pageSize}
+              onChange={(e) => handleChangePageSize(Number(e.target.value))}
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              className="px-2 py-1 border border-gray-300 rounded disabled:opacity-40"
+              onClick={() => handleChangePage(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              {"<"}
+            </button>
+            <span>
+              Página <strong>{currentPage}</strong> de{" "}
+              <strong>{totalPages}</strong>
+            </span>
+            <button
+              className="px-2 py-1 border border-gray-300 rounded disabled:opacity-40"
+              onClick={() => handleChangePage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+            >
+              {">"}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <ChangePriceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        tablePrice={selectedTablePrice} // vem do header
-        selectedProducts={selectedProducts} // já está no seu state
+        tablePrice={selectedTablePrice}
+        selectedProducts={selectedProducts}
       />
     </div>
   );

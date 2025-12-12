@@ -54,7 +54,9 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
   }
 
   const tablePriceUrl = `https://integrainc-senior-api.vercel.app/products/all${
-    tablePriceQuery.toString() ? `?${tablePriceQuery.toString()}` : ""
+    tablePriceQuery.toString()
+      ? `?${tablePriceQuery.toString()}&limit=1000`
+      : ""
   }`;
 
   console.log("tablePriceUrl", tablePriceUrl);
