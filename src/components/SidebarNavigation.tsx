@@ -27,7 +27,7 @@ const navigation = [
     name: "Tabela de Preço",
     href: "/tabelapreco",
     icon: FolderIcon,
-    disabled: true,
+    disabled: false,
   },
 ];
 
