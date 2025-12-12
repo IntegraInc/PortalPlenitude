@@ -6,7 +6,7 @@ import { TablePriceProduct } from "@/app/types/filterTypes";
 import { changePrice } from "@/app/(dashboard)/tabelapreco/action";
 import { toast } from "react-toastify";
 
-type ChangeType = "margem" | "markup" | "price";
+type ChangeType = "margem" | "markup" | "typePrice";
 
 interface ChangePriceModalProps {
   isOpen: boolean;
@@ -206,8 +206,8 @@ export default function ChangePriceModal({
                 type="radio"
                 name="changeType"
                 value="price"
-                checked={changeType === "price"}
-                onChange={() => setChangeType("price")}
+                checked={changeType === "typePrice"}
+                onChange={() => setChangeType("typePrice")}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <div>
