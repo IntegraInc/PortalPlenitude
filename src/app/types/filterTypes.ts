@@ -3,6 +3,13 @@ export interface FiltersResponse {
   message: string;
   data: FiltersData;
 }
+export interface TablePriceResponse {
+  data: TablePriceData;
+}
+
+export interface TablePriceData {
+  tablePrice: string[];
+}
 
 export interface FiltersData {
   supplyer: Fornecedor[];
@@ -11,6 +18,29 @@ export interface FiltersData {
   family: Familia[];
 }
 
+export interface TablePriceProduct {
+  productCode: string;
+  barcode: number;
+  description: string;
+  familyName: string;
+  familyCode: string;
+  category: string;
+  lastPurchaseCost: string; // vem formatado "R$41,80"
+  capPrice: number;
+  capPercent: number;
+  salePrice: number;
+  markupPercent: number;
+  marginPercent: number;
+  suggestedPriceByMargin: number;
+  suggestedPriceByMarkup: number;
+  availableStock: number;
+  lastPurchaseDate: string; // "dd/MM/yyyy"
+}
+export interface TablePriceProductsResponse {
+  success: boolean;
+  message: string;
+  data: TablePriceProduct[];
+}
 export interface Fornecedor {
   code: string;
   name: string;
