@@ -6,7 +6,7 @@ import { TablePriceProduct } from "@/app/types/filterTypes";
 import { changePrice } from "@/app/(dashboard)/tabelapreco/action";
 import { toast } from "react-toastify";
 
-type ChangeType = "margem" | "markup" | "typePrice";
+type typePrice = "margem" | "markup" | "price";
 
 interface ChangePriceModalProps {
   isOpen: boolean;
@@ -21,25 +21,25 @@ export default function ChangePriceModal({
   tablePrice,
   selectedProducts,
 }: ChangePriceModalProps) {
-  const [changeType, setChangeType] = useState<ChangeType | null>(null);
+  const [typePrice, setTypePrice] = useState<typePrice | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      setChangeType(null);
+      setTypePrice(null);
       setIsSubmitting(false);
     }
   }, [isOpen]);
 
   const handleClose = () => {
     if (isSubmitting) return;
-    setChangeType(null);
+    setTypePrice(null);
     setIsSubmitting(false);
     onClose();
   };
 
   const handleSubmit = async () => {
-    if (!changeType) {
+    if (!typePrice) {
       toast.info("Selecione o tipo de alteração antes de continuar.", {
         autoClose: 5000,
       });
@@ -91,7 +91,7 @@ export default function ChangePriceModal({
 
       const payload = {
         tablePrice,
-        changeType,
+        typePrice,
         products: productsPayload,
       };
 
@@ -122,10 +122,7 @@ export default function ChangePriceModal({
   };
 
   const canConfirm =
-    !!changeType &&
-    !!tablePrice &&
-    selectedProducts.length > 0 &&
-    !isSubmitting;
+    !!typePrice && !!tablePrice && selectedProducts.length > 0 && !isSubmitting;
 
   return (
     <Dialog
@@ -170,8 +167,8 @@ export default function ChangePriceModal({
                 type="radio"
                 name="changeType"
                 value="margin"
-                checked={changeType === "margem"}
-                onChange={() => setChangeType("margem")}
+                checked={typePrice === "margem"}
+                onChange={() => setTypePrice("margem")}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <div>
@@ -188,8 +185,8 @@ export default function ChangePriceModal({
                 type="radio"
                 name="changeType"
                 value="markup"
-                checked={changeType === "markup"}
-                onChange={() => setChangeType("markup")}
+                checked={typePrice === "markup"}
+                onChange={() => setTypePrice("markup")}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <div>
@@ -206,8 +203,8 @@ export default function ChangePriceModal({
                 type="radio"
                 name="changeType"
                 value="price"
-                checked={changeType === "typePrice"}
-                onChange={() => setChangeType("typePrice")}
+                checked={typePrice === "price"}
+                onChange={() => setTypePrice("price")}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <div>
