@@ -67,26 +67,26 @@ export default function ChangePriceModal({
           typeof p.suggestedPriceByMarkup === "number"
             ? p.suggestedPriceByMarkup
             : p.suggestedPriceByMarkup
-            ? Number(p.suggestedPriceByMarkup)
-            : null,
+              ? Number(p.suggestedPriceByMarkup)
+              : null,
         suggestedPriceByMargin:
           typeof p.suggestedPriceByMargin === "number"
             ? p.suggestedPriceByMargin
             : p.suggestedPriceByMargin
-            ? Number(p.suggestedPriceByMargin)
-            : null,
+              ? Number(p.suggestedPriceByMargin)
+              : null,
         salePrice:
           typeof p.salePrice === "number"
             ? p.salePrice
             : p.salePrice
-            ? Number(p.salePrice)
-            : null,
+              ? Number(p.salePrice)
+              : null,
         capPrice:
           typeof p.capPrice === "number"
             ? p.capPrice
             : p.capPrice
-            ? Number(p.capPrice)
-            : null,
+              ? Number(p.capPrice)
+              : null,
       }));
 
       const payload = {
@@ -103,11 +103,16 @@ export default function ChangePriceModal({
       // if (!responseJson.success) { ... }
       if (responseJson.success) {
         toast.success(
-          `${responseJson.message} Produto: ${responseJson.data[0].productCode}`,
+          `${responseJson.message}`,
           {
             autoClose: 5000,
           }
         );
+      }
+      else {
+        toast.error(`Erro: ${responseJson.message}`, {
+          autoClose: 5000,
+        });
       }
 
       handleClose();
