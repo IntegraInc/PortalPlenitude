@@ -235,9 +235,8 @@ export default function TablePriceHeader({
           <span className="truncate">{selectedTablePriceLabel}</span>
           <div className="flex items-center gap-1">
             <svg
-              className={`w-4 h-4 transition-transform ${
-                isTablePriceOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform ${isTablePriceOpen ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -279,11 +278,10 @@ export default function TablePriceHeader({
                       setIsTablePriceOpen(false);
                       setTablePriceSearch("");
                     }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                      selectedTablePrice === t.code
-                        ? "bg-indigo-50 text-indigo-700"
-                        : ""
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${selectedTablePrice === t.code
+                      ? "bg-indigo-50 text-indigo-700"
+                      : ""
+                      }`}
                   >
                     <span className="truncate">{t.code}</span>
                     {selectedTablePrice === t.code && (
@@ -355,9 +353,8 @@ export default function TablePriceHeader({
         >
           <span>Opções</span>
           <svg
-            className={`w-4 h-4 transition-transform ${
-              isColumnDropdownOpen ? "rotate-180" : ""
-            }`}
+            className={`w-4 h-4 transition-transform ${isColumnDropdownOpen ? "rotate-180" : ""
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -404,11 +401,10 @@ export default function TablePriceHeader({
                         {column.header}
                       </span>
                       <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          !isVisible
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                        className={`text-xs px-2 py-1 rounded ${!isVisible
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {!isVisible ? "Visível" : "Oculta"}
                       </span>
@@ -469,11 +465,10 @@ export default function TablePriceHeader({
       <button
         onClick={onOpenModal}
         disabled={selectedCount === 0}
-        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${
-          selectedCount > 0
-            ? "bg-indigo-600 text-white hover:bg-indigo-700"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-        }`}
+        className={`px-3 py-2  rounded-md text-sm font-medium  cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
+          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
       >
         <svg
           className="w-4 h-4"
