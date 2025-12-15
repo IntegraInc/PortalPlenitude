@@ -184,7 +184,7 @@ export default function OrderModal({
         setModalData({ fornecedor: "", condicao: "", forma: "" });
         onClose();
       } else {
-        toast.error(result.responseJson.message, {
+        toast.error(result.responseJson.details, {
           autoClose: 5000,
         });
       }
