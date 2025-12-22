@@ -138,7 +138,7 @@ export default function TablePriceHeader({
       </div>
 
       {/* Combobox Família */}
-      {/* <div className="flex flex-col relative" ref={familiaDropdownRef}>
+      <div className="flex flex-col relative" ref={familiaDropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
           Família
         </label>
@@ -149,9 +149,8 @@ export default function TablePriceHeader({
           <span className="truncate">{selectedFamilyName}</span>
           <div className="flex items-center gap-1">
             <svg
-              className={`w-4 h-4 transition-transform ${
-                isFamiliaDropdownOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform ${isFamiliaDropdownOpen ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -189,11 +188,10 @@ export default function TablePriceHeader({
                   <button
                     key={f.code}
                     onClick={() => handleFamiliaSelect(f.code)}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                      selectedFamilia === f.code
-                        ? "bg-indigo-50 text-indigo-700"
-                        : ""
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${selectedFamilia === f.code
+                      ? "bg-indigo-50 text-indigo-700"
+                      : ""
+                      }`}
                   >
                     <span className="truncate">{f.name}</span>
                     {selectedFamilia === f.code && (
@@ -221,8 +219,7 @@ export default function TablePriceHeader({
             </div>
           </div>
         )}
-      </div> */}
-
+      </div>
       {/* Combobox Tabela de Preço */}
       <div className="flex flex-col relative" ref={tablePriceDropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
@@ -230,14 +227,13 @@ export default function TablePriceHeader({
         </label>
         <button
           onClick={() => setIsTablePriceOpen(!isTablePriceOpen)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-28 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
         >
           <span className="truncate">{selectedTablePriceLabel}</span>
           <div className="flex items-center gap-1">
             <svg
-              className={`w-4 h-4 transition-transform ${
-                isTablePriceOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform ${isTablePriceOpen ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -253,7 +249,7 @@ export default function TablePriceHeader({
         </button>
 
         {isTablePriceOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
+          <div className="absolute top-full left-0 mt-1 w-24 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-hidden">
             <div className="p-2 border-b border-gray-200">
               <input
                 type="text"
@@ -279,11 +275,10 @@ export default function TablePriceHeader({
                       setIsTablePriceOpen(false);
                       setTablePriceSearch("");
                     }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                      selectedTablePrice === t.code
-                        ? "bg-indigo-50 text-indigo-700"
-                        : ""
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${selectedTablePrice === t.code
+                      ? "bg-indigo-50 text-indigo-700"
+                      : ""
+                      }`}
                   >
                     <span className="truncate">{t.code}</span>
                     {selectedTablePrice === t.code && (
@@ -355,9 +350,8 @@ export default function TablePriceHeader({
         >
           <span>Opções</span>
           <svg
-            className={`w-4 h-4 transition-transform ${
-              isColumnDropdownOpen ? "rotate-180" : ""
-            }`}
+            className={`w-4 h-4 transition-transform ${isColumnDropdownOpen ? "rotate-180" : ""
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -404,11 +398,10 @@ export default function TablePriceHeader({
                         {column.header}
                       </span>
                       <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          !isVisible
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                        className={`text-xs px-2 py-1 rounded ${!isVisible
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {!isVisible ? "Visível" : "Oculta"}
                       </span>
@@ -469,11 +462,10 @@ export default function TablePriceHeader({
       <button
         onClick={onOpenModal}
         disabled={selectedCount === 0}
-        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${
-          selectedCount > 0
-            ? "bg-indigo-600 text-white hover:bg-indigo-700"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-        }`}
+        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
+          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
       >
         <svg
           className="w-4 h-4"

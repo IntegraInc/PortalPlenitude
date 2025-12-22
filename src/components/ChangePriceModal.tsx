@@ -97,7 +97,6 @@ export default function ChangePriceModal({
 
       // 👇 É isso aqui que você pediu
       const { responseJson } = await changePrice(payload);
-      console.log("change-price response:", responseJson);
 
       // Se quiser algum tratamento:
       // if (!responseJson.success) { ... }

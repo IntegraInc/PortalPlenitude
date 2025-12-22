@@ -110,9 +110,9 @@ const PriceInput: React.FC<PriceInputProps> = ({ initialValue, onCommit }) => {
   const [localValue, setLocalValue] = useState<string>(
     initialValue != null
       ? initialValue.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
       : ""
   );
 
@@ -121,9 +121,9 @@ const PriceInput: React.FC<PriceInputProps> = ({ initialValue, onCommit }) => {
     setLocalValue(
       initialValue != null
         ? initialValue.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
         : ""
     );
   }, [initialValue]);
@@ -410,7 +410,6 @@ export function useTablePriceColumns({
             | number
             | null
             | undefined;
-          console.log("salePrice", row.original.salePrice);
           return (
             <PriceInput
               initialValue={originalValue}
@@ -458,9 +457,9 @@ export function useTablePriceColumns({
           const value = row.original.suggestedPriceByMargin;
           return value
             ? value.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })
+              style: "currency",
+              currency: "BRL",
+            })
             : "-";
         },
         size: 130,
@@ -474,9 +473,9 @@ export function useTablePriceColumns({
           const value = row.original.suggestedPriceByMarkup;
           return value
             ? value.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })
+              style: "currency",
+              currency: "BRL",
+            })
             : "-";
         },
         size: 130,
