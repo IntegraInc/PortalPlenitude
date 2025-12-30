@@ -462,7 +462,7 @@ export default function TablePriceHeader({
       <button
         onClick={onOpenModal}
         disabled={selectedCount === 0}
-        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
+        className={`px-3 py-2  rounded-md text-sm font-medium  cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
           ? "bg-indigo-600 text-white hover:bg-indigo-700"
           : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
