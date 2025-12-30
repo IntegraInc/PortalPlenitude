@@ -53,13 +53,11 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
     tablePriceQuery.set("markup", markupParam);
   }
 
-  const tablePriceUrl = `https://integrainc-senior-api.vercel.app/products/all${
-    tablePriceQuery.toString()
+  const tablePriceUrl = `https://integrainc-senior-api.vercel.app/products/all${tablePriceQuery.toString()
       ? `?${tablePriceQuery.toString()}&limit=1000`
       : ""
-  }`;
+    }`;
 
-  console.log("tablePriceUrl", tablePriceUrl);
   // 🧩 Busca dos filtros
   const filtersRes = await fetch(
     "https://integrainc-senior-api.vercel.app/utils/filters",
@@ -129,22 +127,21 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
 
   const tablePriceProductsJson: TablePriceProductsResponse =
     await tablePriceProductsRes.json();
-  console.log("tablePriceProductsJson", tablePriceProductsJson);
 
   return (
     <MainTablePrice
       filters={filtersJson.data}
       tablePriceFilters={tablePriceJson.data.tablePrice}
       tablePriceProducts={tablePriceProductsJson.data || []}
-      // pagination={
-      //   productsJson.pagination || {
-      //     currentPage,
-      //     pageSize,
-      //     totalItems: 0,
-      //     totalPages: 0,
-      //   }
-      // }
-      // currentPage={currentPage}
+    // pagination={
+    //   productsJson.pagination || {
+    //     currentPage,
+    //     pageSize,
+    //     totalItems: 0,
+    //     totalPages: 0,
+    //   }
+    // }
+    // currentPage={currentPage}
     />
   );
 }
