@@ -1,36 +1,49 @@
-import { Product } from "@/app/types/filterTypes";
 import { useState, useEffect } from "react";
 
-export function useTablePriceFilters(products: Product[], initialFamilia = "") {
-  const [filteredData, setFilteredData] = useState<Product[]>(products);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFamilia, setSelectedFamilia] =
-    useState<string>(initialFamilia);
+// Campos mínimos que o hook realmente usa:
+type BasicFields = {
+ description?: string | null;
+ productCode?: string | null;
+ familyCode?: string | null;
+};
 
-  useEffect(() => {
-    let filtered = [...products];
+/**
+ * Hook genérico para filtrar produtos por busca textual e família.
+ * Funciona para Product[] e TablePriceProduct[] desde que tenham os campos básicos.
+ */
+export function useTablePriceFilters<T extends BasicFields>(
+ products: T[],
+ initialFamilia = ""
+) {
+ const [filteredData, setFilteredData] = useState<T[]>(products);
+ const [searchTerm, setSearchTerm] = useState("");
+ const [selectedFamilia, setSelectedFamilia] =
+  useState<string>(initialFamilia);
 
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.description?.toLowerCase().includes(term) ||
-          p.productCode?.toLowerCase().includes(term)
-      );
-    }
+ useEffect(() => {
+  let filtered = [...(products ?? [])];
 
-    if (selectedFamilia && selectedFamilia.trim() !== "") {
-      filtered = filtered.filter((p) => p.familyCode === selectedFamilia);
-    }
+  if (searchTerm.trim()) {
+   const term = searchTerm.toLowerCase();
+   filtered = filtered.filter((p) => {
+    const desc = p.description?.toString().toLowerCase() ?? "";
+    const code = p.productCode?.toString().toLowerCase() ?? "";
+    return desc.includes(term) || code.includes(term);
+   });
+  }
 
-    setFilteredData(filtered);
-  }, [products, searchTerm, selectedFamilia]);
+  if (selectedFamilia && selectedFamilia.trim() !== "") {
+   filtered = filtered.filter((p) => p.familyCode === selectedFamilia);
+  }
 
-  return {
-    filteredData,
-    searchTerm,
-    setSearchTerm,
-    selectedFamilia,
-    setSelectedFamilia,
-  };
+  setFilteredData(filtered);
+ }, [products, searchTerm, selectedFamilia]);
+
+ return {
+  filteredData,
+  searchTerm,
+  setSearchTerm,
+  selectedFamilia,
+  setSelectedFamilia,
+ };
 }
