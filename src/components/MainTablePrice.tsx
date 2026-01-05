@@ -48,10 +48,17 @@ export default function MainTablePrice({
   tablePriceProducts,
 }: MainTablePriceProps) {
   const router = useRouter();
+  const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  
+  
+
+
 
   // ✅ dados da tabela em ESTADO LOCAL (começa com o que veio do server)
   const [data, setData] = useState<TablePriceProduct[]>(tablePriceProducts);
@@ -122,6 +129,14 @@ export default function MainTablePrice({
     toggleColumnVisibility,
     resetColumnVisibility,
   } = useColumnVisibility();
+
+const isColumnVisible = (columnId: string) => {
+    return columnVisibility[columnId] !== true;
+  };
+  const visibleColumnsCount = AVAILABLE_COLUMNS.filter((col) =>
+    isColumnVisible(col.id)
+  ).length;
+    
   const { dragState, dragHandlers } = useDragAndDrop();
 
   const {
@@ -289,6 +304,8 @@ export default function MainTablePrice({
         hasCustomColumnOrder={columnOrder.length > 0}
         isDragging={dragState.isDragging}
       />
+       
+      
 
       {/* Footer de paginação */}
       <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
@@ -331,6 +348,80 @@ export default function MainTablePrice({
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col relative" ref={dropdownRef}>
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          Colunas ({visibleColumnsCount}/{AVAILABLE_COLUMNS.length})
+        </label>
+        <button
+          onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
+        >
+          <span>Opções</span>
+          <svg
+            className={`w-4 h-4 transition-transform ${isColumnDropdownOpen ? "rotate-180" : ""
+              }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+
+        {isColumnDropdownOpen && (
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
+            <div className="p-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">
+                Colunas ({visibleColumnsCount}/{availableColumns.length}{" "}
+                visíveis)
+              </div>
+
+              {availableColumns.length === 0 ? (
+                <div className="text-sm text-gray-500 p-2 text-center">
+                  Nenhuma coluna disponível
+                </div>
+              ) : (
+                availableColumns.map((column) => {
+                  const isVisible = isColumnVisible(column.id);
+
+                  return (
+                    <label
+                      key={column.id}
+                      className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!isVisible}
+                        onChange={() => {
+                          onToggleColumnVisibility?.(column.id);
+                        }}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700 flex-1">
+                        {column.header}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${!isVisible
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                          }`}
+                      >
+                        {!isVisible ? "Visível" : "Oculta"}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <ChangePriceModal
