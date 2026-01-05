@@ -347,7 +347,7 @@ export default function TablePriceHeader({
       </div>
 
       {/* Dropdown Colunas */}
-      <div className="flex flex-col relative" ref={dropdownRef}>
+      {/* <div className="flex flex-col relative" ref={dropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
           Colunas ({visibleColumnsCount}/{availableColumns.length})
         </label>
@@ -419,7 +419,7 @@ export default function TablePriceHeader({
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Botão resetar ordem das colunas */}
       <button

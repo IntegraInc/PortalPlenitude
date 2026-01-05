@@ -113,9 +113,8 @@ export default function TableHeader({
           <span className="truncate">{selectedFamilyName}</span>
           <div className="flex items-center gap-1">
             <svg
-              className={`w-4 h-4 transition-transform ${
-                isFamiliaDropdownOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform ${isFamiliaDropdownOpen ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -155,11 +154,10 @@ export default function TableHeader({
                   <button
                     key={f.code}
                     onClick={() => handleFamiliaSelect(f.code)}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${
-                      selectedFamilia === f.code
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${selectedFamilia === f.code
                         ? "bg-indigo-50 text-indigo-700"
                         : ""
-                    }`}
+                      }`}
                   >
                     <span className="truncate">{f.name}</span>
                     {selectedFamilia === f.code && (
@@ -191,7 +189,7 @@ export default function TableHeader({
       </div>
 
       {/* Dropdown Colunas */}
-      <div className="flex flex-col relative" ref={dropdownRef}>
+      {/* <div className="flex flex-col relative" ref={dropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
           Colunas ({visibleColumnsCount}/{availableColumns.length})
         </label>
@@ -265,7 +263,7 @@ export default function TableHeader({
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Botão resetar ordem das colunas */}
       <button
@@ -315,11 +313,10 @@ export default function TableHeader({
       <button
         onClick={onOpenModal}
         disabled={selectedCount === 0}
-        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${
-          selectedCount > 0
+        className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
             ? "bg-indigo-600 text-white hover:bg-indigo-700"
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
-        }`}
+          }`}
       >
         <svg
           className="w-4 h-4"

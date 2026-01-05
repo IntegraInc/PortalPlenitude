@@ -13,6 +13,7 @@ import { useDragAndDrop } from "@/app/hooks/useDragAndDrop";
 import { useTableFilters } from "@/app/hooks/useTableFilters";
 import { useColumnVisibility } from "@/app/hooks/useColumnVisibility";
 import OrderModal from "./OrderModal";
+import ColumnsDropdown from "./ColumnsDropdown";
 
 interface MainTableProps {
   filters: FiltersData;
@@ -73,6 +74,12 @@ export default function MainTable({ filters, products }: MainTableProps) {
   } = useColumnVisibility();
 
   const { dragState, dragHandlers } = useDragAndDrop();
+  const isColumnVisible = (columnId: string) => {
+    return columnVisibility[columnId] !== true;
+  };
+  const visibleColumnsCount = AVAILABLE_COLUMNS.filter((col) =>
+    isColumnVisible(col.id)
+  ).length;
 
   const {
     table,
@@ -205,12 +212,21 @@ export default function MainTable({ filters, products }: MainTableProps) {
         </div>
       </div>
 
-      <TableFooterInfo
-        displayedItemsCount={filteredData?.length || 0}
-        selectedItemsCount={selectedCount}
-        hasCustomColumnOrder={columnOrder.length > 0}
-        isDragging={dragState.isDragging}
-      />
+      <div className="flex justify-between items-center mt-4">
+
+        <TableFooterInfo
+          displayedItemsCount={filteredData?.length || 0}
+          selectedItemsCount={selectedCount}
+          hasCustomColumnOrder={columnOrder.length > 0}
+          isDragging={dragState.isDragging}
+        />
+        <ColumnsDropdown
+          availableColumns={AVAILABLE_COLUMNS}
+          columnVisibility={columnVisibility}
+          setColumnVisibility={setColumnVisibility}
+          resetColumnVisibility={resetColumnVisibility}
+        />
+      </div>
 
       <OrderModal
         isOpen={isModalOpen}

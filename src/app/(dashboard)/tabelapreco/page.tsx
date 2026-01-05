@@ -47,7 +47,6 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
   const filtersJson: FiltersResponse = await filtersRes.json();
   const tablePriceJson: TablePriceResponse = await tablePriceRes.json();
 
-  console.log(tablePriceJson.data.tablePrice);
 
   // carga inicial dos produtos (respeita os searchParams quando entrar na página)
   const qs = new URLSearchParams();
@@ -70,8 +69,6 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
   );
   const tablePriceProductsJson: TablePriceProductsResponse = await resp.json();
 
-  // console.log(tablePriceProductsJson.data);
-  // normalize para { code: string }
   const tablePriceOptions = (tablePriceJson.data?.tablePrice ?? []).map(
     (t: string | { code: string }) =>
       typeof t === "string" ? { code: t } : t
