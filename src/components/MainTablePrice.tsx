@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-
+import * as XLSX from "xlsx";
 import { FiltersData, TablePriceProduct } from "@/app/types/filterTypes";
 import { useState, useRef, useEffect, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -231,9 +231,48 @@ export default function MainTablePrice({
     setCurrentPage(1);
   };
 
+  const handleExport = () => {
+    // pega as linhas que estão no modelo atual (filtrado + ordenado)
+    const rows = table.getRowModel().rows;
+
+    // opcional: exportar apenas colunas visíveis
+    const visibleCols = table
+      .getAllLeafColumns()
+      .filter((c) => c.getIsVisible())
+      .map((c) => ({
+        id: c.id,
+        header:
+          typeof c.columnDef.header === "string"
+            ? c.columnDef.header
+            : c.id,
+      }));
+
+    const dataToExport = rows.map((row) => {
+      const obj: Record<string, unknown> = {};
+
+      visibleCols.forEach((col) => {
+        const value = row.getValue(col.id);
+        obj[col.header] = value ?? "";
+      });
+
+      return obj;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Tabela");
+
+    // ✅ RECOMENDADO: salvar como .xlsx
+    XLSX.writeFile(wb, "preco.xlsx");
+
+    // Se você INSISTIR em .xls no nome:
+    // XLSX.writeFile(wb, "tabela.xls");
+  };
+
   return (
     <div className="w-full h-full flex flex-col">
       <TablePriceHeader
+        onExport={handleExport}
         onApplyFilters={handleApplyFilters}                 // << usa o handler novo
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

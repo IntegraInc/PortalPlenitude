@@ -1,5 +1,6 @@
 "use client";
 
+import * as XLSX from "xlsx";
 import { FiltersData, Product } from "@/app/types/filterTypes";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -227,6 +228,43 @@ export default function MainTable({ filters, products }: MainTableProps) {
     setIsModalOpen(true);
     // ✅ Agora você tem acesso aos produtos selecionados no modal
   };
+  const handleExport = () => {
+    // pega as linhas que estão no modelo atual (filtrado + ordenado)
+    const rows = table.getRowModel().rows;
+
+    // opcional: exportar apenas colunas visíveis
+    const visibleCols = table
+      .getAllLeafColumns()
+      .filter((c) => c.getIsVisible())
+      .map((c) => ({
+        id: c.id,
+        header:
+          typeof c.columnDef.header === "string"
+            ? c.columnDef.header
+            : c.id,
+      }));
+
+    const dataToExport = rows.map((row) => {
+      const obj: Record<string, unknown> = {};
+
+      visibleCols.forEach((col) => {
+        const value = row.getValue(col.id);
+        obj[col.header] = value ?? "";
+      });
+
+      return obj;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Tabela");
+
+    // ✅ RECOMENDADO: salvar como .xlsx
+    XLSX.writeFile(wb, "analise.xlsx");
+
+    // Se você INSISTIR em .xls no nome:
+    // XLSX.writeFile(wb, "tabela.xls");
+  };
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -243,6 +281,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
         onToggleColumnVisibility={toggleColumnVisibility}
         onResetColumnVisibility={resetColumnVisibility}
         availableColumns={AVAILABLE_COLUMNS}
+        onExport={handleExport}
       />
 
       <div
