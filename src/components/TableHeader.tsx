@@ -14,6 +14,7 @@ interface TableHeaderProps {
   onToggleColumnVisibility?: (columnId: string) => void;
   onResetColumnVisibility?: () => void;
   availableColumns?: Array<{ id: string; header: string }>;
+  onExport?: () => void;
 }
 
 export default function TableHeader({
@@ -29,6 +30,7 @@ export default function TableHeader({
   onToggleColumnVisibility,
   onResetColumnVisibility,
   availableColumns = [],
+  onExport,
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isFamiliaDropdownOpen, setIsFamiliaDropdownOpen] = useState(false);
@@ -155,8 +157,8 @@ export default function TableHeader({
                     key={f.code}
                     onClick={() => handleFamiliaSelect(f.code)}
                     className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center justify-between ${selectedFamilia === f.code
-                        ? "bg-indigo-50 text-indigo-700"
-                        : ""
+                      ? "bg-indigo-50 text-indigo-700"
+                      : ""
                       }`}
                   >
                     <span className="truncate">{f.name}</span>
@@ -188,83 +190,23 @@ export default function TableHeader({
         )}
       </div>
 
-      {/* Dropdown Colunas */}
-      {/* <div className="flex flex-col relative" ref={dropdownRef}>
-        <label className="text-sm font-medium text-gray-700 mb-1">
-          Colunas ({visibleColumnsCount}/{availableColumns.length})
-        </label>
-        <button
-          onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
-        >
-          <span>Opções</span>
-          <svg
-            className={`w-4 h-4 transition-transform ${
-              isColumnDropdownOpen ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
 
-        {isColumnDropdownOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
-            <div className="p-2">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">
-                Colunas ({visibleColumnsCount}/{availableColumns.length}{" "}
-                visíveis)
-              </div>
-
-              {availableColumns.length === 0 ? (
-                <div className="text-sm text-gray-500 p-2 text-center">
-                  Nenhuma coluna disponível
-                </div>
-              ) : (
-                availableColumns.map((column) => {
-                  const isVisible = isColumnVisible(column.id);
-
-                  return (
-                    <label
-                      key={column.id}
-                      className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={!isVisible}
-                        onChange={() => {
-                          onToggleColumnVisibility?.(column.id);
-                        }}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700 flex-1">
-                        {column.header}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          !isVisible
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {!isVisible ? "Visível" : "Oculta"}
-                      </span>
-                    </label>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
-      </div> */}
-
+      {/* Botão exportar */}
+      <button
+        onClick={onExport}
+        className="px-3 py-2 rounded-md text-sm font-medium bg-green-200 text-green-800 hover:bg-green-300 transition-colors cursor-pointer flex items-center gap-2"
+        title="Exportar os dados exibidos na tabela"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
+          />
+        </svg>
+        Exportar excel
+      </button>
       {/* Botão resetar ordem das colunas */}
       <button
         onClick={clearPersistedColumnOrder}
@@ -314,8 +256,8 @@ export default function TableHeader({
         onClick={onOpenModal}
         disabled={selectedCount === 0}
         className={`px-4 py-2 rounded-md text-sm font-medium h-10 cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
-            ? "bg-indigo-600 text-white hover:bg-indigo-700"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
       >
         <svg
