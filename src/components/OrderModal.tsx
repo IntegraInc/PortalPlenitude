@@ -191,7 +191,7 @@ export default function OrderModal({
     } catch (error) {
       console.error("Erro ao criar ordem de compra:", error);
       toast.error(
-        "Ocorreu um erro inesperado ao gerar orderm de compra. Contate o administrador do sistema.",
+        "Ocorreu um erro inesperado ao gerar orderm de compra: " + error,
         {
           autoClose: 2000,
         }
