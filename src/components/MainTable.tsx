@@ -1,7 +1,7 @@
 "use client";
 
 import { FiltersData, Product } from "@/app/types/filterTypes";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "./Pagination";
 import TableFooterInfo from "./TableFooterInfo";
@@ -13,13 +13,32 @@ import { useDragAndDrop } from "@/app/hooks/useDragAndDrop";
 import { useTableFilters } from "@/app/hooks/useTableFilters";
 import { useColumnVisibility } from "@/app/hooks/useColumnVisibility";
 import OrderModal from "./OrderModal";
+import ColumnsDropdown from "./ColumnsDropdown";
 
 interface MainTableProps {
   filters: FiltersData;
   products: Product[];
 }
 
-const AVAILABLE_COLUMNS = [
+// 🔧 Helpers meses dinâmicos
+const monthId = (m: string) => `ms_${m.replace("/", "_")}`;
+
+const uniqueMonthsInOrder = (products: Product[]) => {
+  const seen = new Set<string>();
+  const order: string[] = [];
+  for (const p of products ?? []) {
+    for (const it of p.monthlySales ?? []) {
+      if (!seen.has(it.month)) {
+        seen.add(it.month);
+        order.push(it.month);
+      }
+    }
+  }
+  return order; // mantém a ordem que aparece no backend
+};
+
+// ✅ Colunas fixas do dropdown (mantém igual seu original, sem os meses hard-coded)
+const BASE_AVAILABLE_COLUMNS = [
   { id: "familyName", header: "Família" },
   { id: "familyCode", header: "Cód. Família" },
   { id: "lastPurchaseCost", header: "Último Custo" },
@@ -30,12 +49,6 @@ const AVAILABLE_COLUMNS = [
   { id: "quantityToBuy", header: "Quantidade Sugerida" },
   { id: "totalSales", header: "Vendas Total" },
   { id: "average6Months", header: "Média venda mês" },
-  { id: "monthlySales_NOV_2025", header: "DEZ/2025" },
-  { id: "monthlySales_OCT_2025", header: "NOV/2025" },
-  { id: "monthlySales_SEP_2025", header: "OCT/2025" },
-  { id: "monthlySales_AUG_2025", header: "SEP/2025" },
-  { id: "monthlySales_JUL_2025", header: "AUG/2025" },
-  { id: "monthlySales_JUN_2025", header: "JUL/2025" },
   { id: "orderQuantity", header: "Qtd. a Comprar" },
 ];
 
@@ -61,9 +74,50 @@ export default function MainTable({ filters, products }: MainTableProps) {
     selectedFamilia,
     setSelectedFamilia,
   } = useTableFilters(products || [], familiaFromUrl);
+  const monthKeys = useMemo(() => uniqueMonthsInOrder(products), [products]);
+
+  const AVAILABLE_COLUMNS = useMemo(() => {
+    const monthCols = monthKeys.map((m) => ({
+      id: monthId(m),   // ✅ precisa bater com o hook: ms_DEC_2025 etc
+      header: m,        // ✅ mostra exatamente como vem do backend (SEP/2025, JAN/2026...)
+    }));
+
+
+    // mantém o "orderQuantity" por último (igual seu layout mental)
+    const baseWithoutOrderQty = BASE_AVAILABLE_COLUMNS.filter(c => c.id !== "orderQuantity");
+    const orderQty = BASE_AVAILABLE_COLUMNS.find(c => c.id === "orderQuantity")!;
+
+    return [...baseWithoutOrderQty, ...monthCols, orderQty];
+  }, [monthKeys]);
+
+
+
 
   const { columnOrder, setColumnOrder, clearPersistedColumnOrder } =
     useLocalStorage();
+
+  useEffect(() => {
+    // ids reais que existem HOJE (fonte da verdade)
+    const baseIds = ["select", "productCode", "barcode", "description"];
+    const dynamicIds = AVAILABLE_COLUMNS.map(c => c.id);
+    const allIds = Array.from(new Set([...baseIds, ...dynamicIds])); // sem duplicar
+
+    setColumnOrder((prev) => {
+      const prevArr = Array.isArray(prev) ? prev : [];
+
+      // 1) remove ids que não existem mais (ex.: monthlySales_* antigo)
+      const kept = prevArr.filter((id) => allIds.includes(id));
+
+      // 2) adiciona os que estão faltando (ex.: ms_JAN_2026 novo)
+      const missing = allIds.filter((id) => !kept.includes(id));
+
+      // 3) garante select sempre na frente
+      const next = ["select", ...kept.filter(id => id !== "select"), ...missing.filter(id => id !== "select")];
+
+      return next;
+    });
+  }, [AVAILABLE_COLUMNS, setColumnOrder]);
+
 
   const {
     columnVisibility,
@@ -72,7 +126,43 @@ export default function MainTable({ filters, products }: MainTableProps) {
     resetColumnVisibility,
   } = useColumnVisibility();
 
+  useEffect(() => {
+    const ids = Array.from(
+      new Set([
+        "select",
+        "productCode",
+        "barcode",
+        "description",
+        ...AVAILABLE_COLUMNS.map((c) => c.id),
+      ])
+    );
+
+    setColumnVisibility((old) => {
+      const next: Record<string, boolean> = {};
+
+      // mantém só ids válidos
+      for (const id of ids) {
+        next[id] = old?.[id];
+      }
+
+      // defaults que nunca podem sumir
+      next.select = true;
+      next.description = true;
+
+      // para meses novos (undefined), deixa como undefined mesmo (visível pelo helper)
+      return next;
+    });
+  }, [AVAILABLE_COLUMNS, setColumnVisibility]);
+
+
+
   const { dragState, dragHandlers } = useDragAndDrop();
+  const isColumnVisible = (columnId: string) => {
+    return columnVisibility[columnId] !== true;
+  };
+  const visibleColumnsCount = AVAILABLE_COLUMNS.filter((col) =>
+    isColumnVisible(col.id)
+  ).length;
 
   const {
     table,
@@ -205,12 +295,21 @@ export default function MainTable({ filters, products }: MainTableProps) {
         </div>
       </div>
 
-      <TableFooterInfo
-        displayedItemsCount={filteredData?.length || 0}
-        selectedItemsCount={selectedCount}
-        hasCustomColumnOrder={columnOrder.length > 0}
-        isDragging={dragState.isDragging}
-      />
+      <div className="flex justify-between items-center mt-4">
+
+        <TableFooterInfo
+          displayedItemsCount={filteredData?.length || 0}
+          selectedItemsCount={selectedCount}
+          hasCustomColumnOrder={columnOrder.length > 0}
+          isDragging={dragState.isDragging}
+        />
+        <ColumnsDropdown
+          availableColumns={AVAILABLE_COLUMNS}
+          columnVisibility={columnVisibility}
+          setColumnVisibility={setColumnVisibility}
+          resetColumnVisibility={resetColumnVisibility}
+        />
+      </div>
 
       <OrderModal
         isOpen={isModalOpen}

@@ -159,15 +159,40 @@ export function useTableColumns({
     }
   }, [filteredData, onOrderQuantitiesChange]);
 
+  // ✅ Helper: pega total do mês no produto
   const getMonthlySales = useCallback((product: Product, month: string) => {
     const monthlySale = product.monthlySales?.find(
       (sale) => sale.month === month
     );
-    return monthlySale?.total || 0;
+    return Number(monthlySale?.total ?? 0);
   }, []);
 
+  // ✅ 1) Descobrir os meses vindos do backend, na ordem em que aparecem
+  const monthKeys = useMemo(() => {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    for (const p of filteredData ?? []) {
+      for (const it of p.monthlySales ?? []) {
+        if (!seen.has(it.month)) {
+          seen.add(it.month);
+          order.push(it.month);
+        }
+      }
+    }
+    return order; // Mantém a ordem da API
+  }, [filteredData]);
 
-
+  // ✅ 2) Gerar colunas dinâmicas de meses (ordenáveis)
+  const monthColumns = useMemo<ColumnDef<Product>[]>(() => {
+    return monthKeys.map((mKey) => ({
+      id: `ms_${mKey.replace("/", "_")}`, // ex.: ms_DEC_2025
+      header: mKey,                       // mostra exatamente como veio do back
+      size: 100,
+      enableSorting: true,
+      accessorFn: (row) => getMonthlySales(row, mKey), // ordenar funciona
+      cell: ({ getValue }) => getValue() as number,
+    }));
+  }, [monthKeys, getMonthlySales]);
 
   const toggleAllRowsSelection = useCallback(() => {
     if (Object.keys(rowSelection).length === filteredData.length) {
@@ -193,8 +218,9 @@ export function useTableColumns({
     [rowSelection, isAllSelected]
   );
 
-  const columns = useMemo<ColumnDef<Product>[]>(
-    () => [
+  // ✅ 3) Colunas da tabela + meses dinâmicos (substitui as hard-coded)
+  const columns = useMemo<ColumnDef<Product>[]>(() => {
+    return [
       {
         header: () => (
           <div className="flex items-center">
@@ -245,29 +271,12 @@ export function useTableColumns({
         accessorKey: "description",
         id: "description",
         header: "Descrição",
-        size: 300, // Tamanho da coluna ajustado
+        size: 300,
         meta: { sticky: true, left: 240 },
         enableSorting: true,
         cell: ({ row }) => (
-          <div
-            className="relative" // Adiciona a posição relativa para o tooltip
-          >
-            <div
-              className="truncate max-w-[500px]" // Ajuste para garantir que o texto não ultrapasse a largura
-              title={row.original.description} // Tooltip nativo do HTML
-            >
-              {row.original.description}
-            </div>
-
-            {/* Tooltip customizado */}
-            <div
-              className="tooltip-content absolute bg-black text-white text-xs rounded px-2 py-1 invisible opacity-0 transition-opacity duration-50"
-              style={{
-                bottom: "100%",
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
-            >
+          <div className="relative">
+            <div className="truncate max-w-[500px]" title={row.original.description}>
               {row.original.description}
             </div>
           </div>
@@ -301,26 +310,18 @@ export function useTableColumns({
             Últ. <br /> Custo
           </span>
         ),
-        cell: ({ row }) => {
-          const value = row.original.lastPurchaseCost;
-          // if (!value || value === "R$0,01") return "-";
-          return value;
-        },
+        cell: ({ row }) => row.original.lastPurchaseCost,
         size: 140,
         enableSorting: true,
       },
-      // Correção: Envolva o JSX em uma função que retorna o elemento
       {
         accessorKey: "availableStock",
         id: "availableStock",
-
-        // A propriedade 'header' deve ser uma função de template
         header: () => (
           <span className="whitespace-nowrap">
             Est. <br /> Disp
           </span>
         ),
-
         cell: ({ row }) =>
           row.original.availableStock != null &&
           row.original.availableStock.toString(),
@@ -409,54 +410,10 @@ export function useTableColumns({
         size: 150,
         enableSorting: true,
       },
-      {
-        accessorKey: "monthlySales_NOV_2025",
-        id: "monthlySales_NOV_2025",
-        header: "DEZ/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "DEC/2025"),
-        size: 100,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "monthlySales_OCT_2025",
-        id: "monthlySales_OCT_2025",
-        header: "NOV/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "NOV/2025"),
-        size: 100,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "monthlySales_SEP_2025",
-        id: "monthlySales_SEP_2025",
-        header: "OUT/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "OCT/2025"),
-        size: 100,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "monthlySales_AUG_2025",
-        id: "monthlySales_AUG_2025",
-        header: "SET/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "SEP/2025"),
-        size: 100,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "monthlySales_JUL_2025",
-        id: "monthlySales_JUL_2025",
-        header: "AGO/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "AUG/2025"),
-        size: 100,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "monthlySales_JUN_2025",
-        id: "monthlySales_JUN_2025",
-        header: "JUL/2025",
-        cell: ({ row }) => getMonthlySales(row.original, "JUL/2025"),
-        size: 100,
-        enableSorting: true,
-      },
+
+      // ✅ Meses dinâmicos vindos do backend (ordenáveis)
+      ...monthColumns,
+
       {
         accessorKey: "orderQuantity",
         id: "orderQuantity",
@@ -477,16 +434,15 @@ export function useTableColumns({
         size: 120,
         enableSorting: false,
       },
-    ],
-    [
-      isAllSelected,
-      isSomeSelected,
-      toggleAllRowsSelection,
-      getMonthlySales,
-      orderQuantities,
-      updateOrderQuantity,
-    ]
-  );
+    ];
+  }, [
+    isAllSelected,
+    isSomeSelected,
+    toggleAllRowsSelection,
+    orderQuantities,
+    updateOrderQuantity,
+    monthColumns, // << só isso de novo aqui
+  ]);
 
   const table = useReactTable({
     data: filteredData,
@@ -506,13 +462,6 @@ export function useTableColumns({
     getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
   });
-
-  // useEffect(() => {
-  //   const allCols = table.getAllLeafColumns().map((c) => c.id);
-  //   if (allCols.some((id) => !columnOrder.includes(id))) {
-  //     setColumnOrder(allCols);
-  //   }
-  // }, [table]);
 
   const selectedCount = Object.keys(rowSelection).length;
 

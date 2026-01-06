@@ -1,12 +1,12 @@
-import { FiltersData } from "@/app/types/filterTypes";
 import { useState, useRef, useEffect } from "react";
+import type { FiltersData } from "@/app/types/filterTypes";
 
 interface TableHeaderProps {
+  filters: Pick<FiltersData, "family">; // << só o que é usado
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedFamilia: string;
   setSelectedFamilia: (familia: string) => void;
-  filters: FiltersData;
   selectedCount: number;
   clearPersistedColumnOrder: () => void;
   onOpenModal: () => void;
@@ -23,6 +23,8 @@ interface TableHeaderProps {
   setMarginPercent: (value: string) => void;
   markupPercent: string;
   setMarkupPercent: (value: string) => void;
+  onApplyFilters: () => void;   // << dispara a aplicação
+  isApplying?: boolean;
 }
 
 export default function TablePriceHeader({
@@ -45,6 +47,8 @@ export default function TablePriceHeader({
   setMarginPercent,
   markupPercent,
   setMarkupPercent,
+  onApplyFilters,
+  isApplying = false,
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isFamiliaDropdownOpen, setIsFamiliaDropdownOpen] = useState(false);
@@ -109,11 +113,6 @@ export default function TablePriceHeader({
     setFamiliaSearch("");
   };
 
-  const clearFamiliaSelection = () => {
-    setSelectedFamilia("");
-    setIsFamiliaDropdownOpen(false);
-    setFamiliaSearch("");
-  };
 
   // 🔽 filtros para tabela de preço
   const filteredTablePrices = tablePriceFilters?.filter((t) =>
@@ -136,6 +135,14 @@ export default function TablePriceHeader({
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-72"
         />
       </div>
+      <button
+        onClick={onApplyFilters}
+        disabled={isApplying}
+        className="px-4 py-2 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+        title="Aplicar filtros e atualizar a listagem"
+      >
+        {isApplying ? "Aplicando..." : "Aplicar filtros"}
+      </button>
 
       {/* Combobox Família */}
       <div className="flex flex-col relative" ref={familiaDropdownRef}>
@@ -340,7 +347,7 @@ export default function TablePriceHeader({
       </div>
 
       {/* Dropdown Colunas */}
-      <div className="flex flex-col relative" ref={dropdownRef}>
+      {/* <div className="flex flex-col relative" ref={dropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
           Colunas ({visibleColumnsCount}/{availableColumns.length})
         </label>
@@ -412,7 +419,7 @@ export default function TablePriceHeader({
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Botão resetar ordem das colunas */}
       <button
