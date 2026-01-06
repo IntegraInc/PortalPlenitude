@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 
 type Col = { id: string; header: string };
-type VisibilityMap = Record<string, boolean>; // true = OCULTA, false/undefined = visível
+type VisibilityMap = Record<string, boolean>; // true = VISÍVEL, false = OCULTA
 
 function ColumnsDropdown({
     availableColumns,
@@ -17,7 +17,8 @@ function ColumnsDropdown({
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    const isVisible = (id: string) => columnVisibility?.[id] !== true;
+    // ✅ VISÍVEL se não for explicitamente false
+    const isVisible = (id: string) => columnVisibility?.[id] !== false;
 
     // contador consistente com a lista
     const visibleCount = useMemo(
@@ -25,28 +26,34 @@ function ColumnsDropdown({
         [availableColumns, columnVisibility]
     );
 
-    // apply helpers respeitando true=OCULTA
-    const setHidden = (id: string, hidden: boolean) =>
-        setColumnVisibility((prev) => ({ ...prev, [id]: hidden }));
+    // seta visibilidade diretamente
+    const setVisible = (id: string, visible: boolean) =>
+        setColumnVisibility((prev) => ({ ...prev, [id]: visible }));
 
     const handleCheckbox = (id: string, checked: boolean) => {
-        // checked=true significa "OCULTA" (marca para ocultar)
-        setHidden(id, checked);
+        // checked = true => VISÍVEL
+        // checked = false => OCULTA
+        setVisible(id, checked);
     };
 
     const handleSelectAll = () => {
-        // “Selecionar tudo” no seu antigo significava deixar tudo VISÍVEL
+        // marcar todas = todas VISÍVEIS
         setColumnVisibility((prev) => {
             const next = { ...prev };
-            availableColumns.forEach((c) => { next[c.id] = false; }); // visível
+            availableColumns.forEach((c) => {
+                next[c.id] = true;
+            });
             return next;
         });
     };
 
     const handleHideAll = () => {
+        // desmarcar todas = todas OCULTAS
         setColumnVisibility((prev) => {
             const next = { ...prev };
-            availableColumns.forEach((c) => { next[c.id] = true; }); // oculta
+            availableColumns.forEach((c) => {
+                next[c.id] = false;
+            });
             return next;
         });
     };
@@ -66,7 +73,12 @@ function ColumnsDropdown({
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white hover:bg-gray-50 flex items-center justify-between min-w-[150px]"
             >
                 Colunas ({visibleCount}/{availableColumns.length})
-                <svg className={`w-4 h-4 ml-2 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                    className={`w-4 h-4 ml-2 transition-transform ${open ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
@@ -75,28 +87,40 @@ function ColumnsDropdown({
                 <div className="absolute bottom-full right-0 mb-2 w-72 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto p-2">
                     <div className="flex items-center justify-between px-2 py-1 border-b text-xs text-gray-500">
                         <span>Colunas ({visibleCount}/{availableColumns.length})</span>
-                        <button className="text-indigo-600 hover:underline" onClick={resetColumnVisibility}>Resetar</button>
+                        <button className="text-indigo-600 hover:underline" onClick={resetColumnVisibility}>
+                            Resetar
+                        </button>
                     </div>
 
                     <div className="flex items-center justify-between text-xs p-2">
-                        <button onClick={handleHideAll} className="text-green-600 hover:underline">Selecionar tudo</button>
-                        <button onClick={handleSelectAll} className="text-red-600 hover:underline">Ocultar tudo</button>
+                        <button onClick={handleSelectAll} className="text-green-600 hover:underline">
+                            Mostrar todas
+                        </button>
+                        <button onClick={handleHideAll} className="text-red-600 hover:underline">
+                            Ocultar todas
+                        </button>
                     </div>
 
                     {availableColumns.map((col) => {
                         const visible = isVisible(col.id);
-                        const hidden = !visible; // para bater com “checked = oculto”
+
                         return (
-                            <label key={col.id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
+                            <label
+                                key={col.id}
+                                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                            >
                                 <input
                                     type="checkbox"
-                                    checked={hidden}                               // ✅ marcado = OCULTA
+                                    checked={visible}                         // ✅ MARCADO = VISÍVEL
                                     onChange={(e) => handleCheckbox(col.id, e.target.checked)}
                                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                                 />
                                 <span className="text-sm text-gray-700 flex-1">{col.header}</span>
-                                <span className={`text-xs px-2 py-1 rounded ${!visible ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                    {visible ? "Oculta" : "Visível"}
+                                <span
+                                    className={`text-xs px-2 py-1 rounded ${visible ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                                        }`}
+                                >
+                                    {visible ? "Visível" : "Oculta"}
                                 </span>
                             </label>
                         );

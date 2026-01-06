@@ -281,7 +281,7 @@ export default function MainTablePrice({
         <div className="min-w-full">
           {filteredData.length === 0 ? (
             <div className="flex justify-center items-center min-h-[200px] text-gray-500">
-              Nenhum produto encontrado
+              Nenhum produto encontrado.
             </div>
           ) : (
             <table className="w-full divide-y divide-gray-200">
