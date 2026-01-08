@@ -56,6 +56,29 @@ export default function MainTablePrice({
   const [isPending, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  function mergeImportedIntoTable(rowsFromBackend: TablePriceProduct[]) {
+    if (!rowsFromBackend?.length) return;
+
+    setData(prev => {
+      const indexByCode = new Map(prev.map((r, i) => [String(r.productCode).trim(), i]));
+      const next = [...prev];
+
+      for (const row of rowsFromBackend) {
+        const code = String(row.productCode).trim();
+        const idx = indexByCode.get(code);
+
+        if (idx != null) {
+          // ✅ atualiza a linha existente com todos os campos retornados
+          next[idx] = { ...next[idx], ...row };
+        } else {
+          // ✅ não existia na grade atual? adiciona
+          next.push(row);
+        }
+      }
+
+      return next;
+    });
+  }
 
 
 
@@ -272,6 +295,7 @@ export default function MainTablePrice({
   return (
     <div className="w-full h-full flex flex-col">
       <TablePriceHeader
+        onImportMerge={mergeImportedIntoTable}
         onExport={handleExport}
         onApplyFilters={handleApplyFilters}                 // << usa o handler novo
         searchTerm={searchTerm}
