@@ -24,8 +24,8 @@ export async function changePrice(body: any) {
 export async function importPrice(body: any) {
  const bearerToken = await GetBearerToken();
  const response = await fetch(
-  // "https://integrainc-senior-api.vercel.app/products/import-price",
-  "http://localhost:3000/products/import-price",
+  "https://integrainc-senior-api.vercel.app/products/import-price",
+  //   "http://localhost:3000/products/import-price",
   {
    method: "post",
    body: JSON.stringify(body),
