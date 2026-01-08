@@ -6,7 +6,7 @@ interface TableHeaderProps {
   setSearchTerm: (term: string) => void;
   selectedFamilia: string;
   setSelectedFamilia: (familia: string) => void;
-  filters: FiltersData;
+  filters: Pick<FiltersData, "family">;
   selectedCount: number;
   clearPersistedColumnOrder: () => void;
   onOpenModal: () => void;
@@ -15,6 +15,8 @@ interface TableHeaderProps {
   onResetColumnVisibility?: () => void;
   availableColumns?: Array<{ id: string; header: string }>;
   onExport?: () => void;
+  showApplyButton?: boolean;                // ✅ novo
+  onApplyClick?: (familia: string) => void; // ✅ novo
 }
 
 export default function TableHeader({
@@ -30,6 +32,8 @@ export default function TableHeader({
   onToggleColumnVisibility,
   onResetColumnVisibility,
   availableColumns = [],
+  onApplyClick,
+  showApplyButton = false,
   onExport,
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
@@ -102,6 +106,15 @@ export default function TableHeader({
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-72"
         />
       </div>
+
+      <button
+        className="px-4 py-2 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+        onClick={() => onApplyClick?.(selectedFamilia)}
+      >
+        aplicar filtros
+      </button>
+
+
 
       {/* Combobox Família */}
       <div className="flex flex-col relative" ref={familiaDropdownRef}>

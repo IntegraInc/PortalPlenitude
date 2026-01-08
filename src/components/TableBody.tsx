@@ -2,11 +2,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { flexRender, Table } from "@tanstack/react-table";
+import { flexRender, Row, Table } from "@tanstack/react-table";
 import { Product } from "@/app/types/filterTypes";
 
 interface TableBodyProps {
   table: Table<Product>;
+  rows?: Row<Product>[]; // ✅ novo
   dragState: any;
   dragHandlers: any;
   columnOrder: string[];
@@ -21,6 +22,7 @@ export default function TableBody({
   dragHandlers,
   columnOrder,
   setColumnOrder,
+  rows
 }: TableBodyProps) {
   const { dragOverColumn, isDragging, draggedColumn } = dragState;
   const {
@@ -76,7 +78,7 @@ export default function TableBody({
       return !hidden.has(val);
     })
   );
-
+  const renderRows = rows ?? table.getRowModel().rows;
   return (
     <>
       <thead className="bg-gray-50 select-none sticky top-0 z-30">
@@ -110,20 +112,17 @@ export default function TableBody({
                   className={`text-left text-xs font-semibold text-gray-600 uppercase tracking-wider relative group whitespace-nowrap border-r border-gray-200
                     ${isDragging ? "cursor-grabbing" : "cursor-grab"}
                     ${canSort ? "hover:bg-gray-200 cursor-pointer" : ""}
-                    ${
-                      isBeingDragged
-                        ? "opacity-50 bg-blue-50 scale-95 shadow-inner"
-                        : ""
+                    ${isBeingDragged
+                      ? "opacity-50 bg-blue-50 scale-95 shadow-inner"
+                      : ""
                     }
-                    ${
-                      isDropTarget && !isBeingDragged
-                        ? "bg-blue-100 border-l-2 border-l-blue-500 border-r-2 border-r-blue-500 transform scale-105 shadow-md"
-                        : "hover:bg-gray-100"
+                    ${isDropTarget && !isBeingDragged
+                      ? "bg-blue-100 border-l-2 border-l-blue-500 border-r-2 border-r-blue-500 transform scale-105 shadow-md"
+                      : "hover:bg-gray-100"
                     }
-                    ${
-                      isSticky
-                        ? "sticky z-40 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
-                        : ""
+                    ${isSticky
+                      ? "sticky z-40 bg-gray-50 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
+                      : ""
                     }
                   `}
                   style={{
@@ -141,11 +140,10 @@ export default function TableBody({
                       {canSort && (
                         <span className="flex flex-col ml-1">
                           <svg
-                            className={`w-2 h-2 ${
-                              header.column.getIsSorted() === "asc"
-                                ? "text-indigo-600"
-                                : "text-gray-400"
-                            }`}
+                            className={`w-2 h-2 ${header.column.getIsSorted() === "asc"
+                              ? "text-indigo-600"
+                              : "text-gray-400"
+                              }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -158,11 +156,10 @@ export default function TableBody({
                             />
                           </svg>
                           <svg
-                            className={`w-2 h-2 ${
-                              header.column.getIsSorted() === "desc"
-                                ? "text-indigo-600"
-                                : "text-gray-400"
-                            }`}
+                            className={`w-2 h-2 ${header.column.getIsSorted() === "desc"
+                              ? "text-indigo-600"
+                              : "text-gray-400"
+                              }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -194,11 +191,10 @@ export default function TableBody({
                             openColumnMenu === header.id ? null : header.id
                           );
                         }}
-                        className={`p-1 rounded hover:bg-gray-200 transition ${
-                          isFiltered
-                            ? "bg-indigo-100 text-indigo-600"
-                            : "text-gray-600"
-                        }`}
+                        className={`p-1 rounded hover:bg-gray-200 transition ${isFiltered
+                          ? "bg-indigo-100 text-indigo-600"
+                          : "text-gray-600"
+                          }`}
                       >
                         <svg
                           className="w-3.5 h-3.5"
@@ -281,14 +277,13 @@ export default function TableBody({
       </thead>
 
       <tbody className="divide-y divide-gray-100 bg-white relative z-10">
-        {filteredRows.map((row) => (
+        {renderRows.map((row) => (
           <tr
             key={row.id}
-            className={`hover:bg-gray-50 transition-colors duration-150 ${
-              row.getIsSelected()
-                ? "bg-blue-50 border-l-2 border-l-blue-500"
-                : ""
-            }`}
+            className={`hover:bg-gray-50 transition-colors duration-150 ${row.getIsSelected()
+              ? "bg-blue-50 border-l-2 border-l-blue-500"
+              : ""
+              }`}
           >
             {row.getVisibleCells().map((cell) => {
               const isSticky = (cell.column.columnDef.meta as any)?.sticky;
@@ -298,17 +293,15 @@ export default function TableBody({
               return (
                 <td
                   key={cell.id}
-                  className={`text-sm text-gray-700 whitespace-nowrap border-r border-gray-100 ${
-                    isSticky
-                      ? "sticky z-20 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
-                      : ""
-                  } ${
-                    isSticky && isSelected
+                  className={`text-sm text-gray-700 whitespace-nowrap border-r border-gray-100 ${isSticky
+                    ? "sticky z-20 shadow-[1px_0_2px_rgba(0,0,0,0.08)]"
+                    : ""
+                    } ${isSticky && isSelected
                       ? "bg-blue-50"
                       : isSticky
-                      ? "bg-white"
-                      : ""
-                  }`}
+                        ? "bg-white"
+                        : ""
+                    }`}
                   style={{
                     width: cell.column.getSize(),
                     left: isSticky ? stickyLeft : undefined,

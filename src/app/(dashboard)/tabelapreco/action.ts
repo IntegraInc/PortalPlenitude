@@ -6,7 +6,7 @@ import { GetBearerToken } from "@/app/utils/getBearerToken";
 export async function changePrice(body: any) {
  const bearerToken = await GetBearerToken();
  const response = await fetch(
-  "https://integrainc-senior-api.vercel.app/products/change-price",
+  `${process.env.NEXT_PUBLIC_API_URL}}products/change-price`,
   {
    method: "post",
    body: JSON.stringify(body),
@@ -24,7 +24,7 @@ export async function changePrice(body: any) {
 export async function importPrice(body: any) {
  const bearerToken = await GetBearerToken();
  const response = await fetch(
-  "https://integrainc-senior-api.vercel.app/products/import-price",
+  `${process.env.NEXT_PUBLIC_API_URL}products/import-price`,
   //   "http://localhost:3000/products/import-price",
   {
    method: "post",

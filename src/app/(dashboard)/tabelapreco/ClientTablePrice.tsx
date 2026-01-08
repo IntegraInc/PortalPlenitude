@@ -55,7 +55,7 @@ export default function ClientTablePrice({
         if (marginPercent) qs.set("margin", marginPercent);
         if (markupPercent) qs.set("markup", markupPercent);
         qs.set("limit", "1000");
-        return `https://integrainc-senior-api.vercel.app/products/all?${qs.toString()}`;
+        return `${process.env.NEXT_PUBLIC_API_URL}products/all?${qs.toString()}`;
     }
 
     function buildPageQuery() {

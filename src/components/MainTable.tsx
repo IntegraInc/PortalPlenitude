@@ -19,6 +19,16 @@ import ColumnsDropdown from "./ColumnsDropdown";
 interface MainTableProps {
   filters: FiltersData;
   products: Product[];
+  renderHeader?: boolean;           // já existe (default true)
+  deferFilterApply?: boolean;       // ✅ novo: não alterar URL nem “buscar” ao trocar família
+  onApplyFilters?: (familia: string) => void; // ✅ novo: o botão Filtrar chama o pai
+  isFetching?: boolean;
+
+  // ✅ paginação de front
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void; // opcional
 }
 
 // 🔧 Helpers meses dinâmicos
@@ -53,7 +63,16 @@ const BASE_AVAILABLE_COLUMNS = [
   { id: "orderQuantity", header: "Qtd. a Comprar" },
 ];
 
-export default function MainTable({ filters, products }: MainTableProps) {
+export default function MainTable({ filters,
+  products,
+  renderHeader = true,
+  deferFilterApply = false,
+  isFetching,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  onApplyFilters, }: MainTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -165,6 +184,27 @@ export default function MainTable({ filters, products }: MainTableProps) {
     isColumnVisible(col.id)
   ).length;
 
+  // depois de obter filteredData, searchTerm, selectedFamilia, etc.
+  const dataForTable = useMemo(() => {
+    if (!deferFilterApply) {
+      // fluxo normal: usa o que o hook já filtrou (família + busca)
+      return filteredData;
+    }
+
+    // no modo "aplicar depois": ignora a família e filtra apenas por searchTerm
+    const term = (searchTerm || "").trim().toLowerCase();
+    if (!term) return products ?? [];
+
+    const contains = (v?: unknown) =>
+      (v ?? "").toString().toLowerCase().includes(term);
+
+    return (products ?? []).filter((p) =>
+      contains(p.productCode) ||
+      contains(p.barcode) ||
+      contains(p.description)
+    );
+  }, [deferFilterApply, filteredData, products, searchTerm]);
+
   const {
     table,
     selectedCount,
@@ -174,13 +214,14 @@ export default function MainTable({ filters, products }: MainTableProps) {
     rowSelection,
     orderQuantities: tableOrderQuantities, // Recebe as quantidades do hook
   } = useTableColumns({
-    filteredData,
+    filteredData: dataForTable,
     columnOrder,
     setColumnOrder,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
     onOrderQuantitiesChange: setOrderQuantities, // ✅ Callback para atualizar as quantidades
   });
+
 
   // ✅ EFFECT para atualizar os produtos selecionados quando o rowSelection mudar
   useEffect(() => {
@@ -192,6 +233,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
   }, [rowSelection, table]);
 
   useEffect(() => {
+    if (deferFilterApply) return; // ✅ não faz nada até clicar no Filtrar
     setIsLoading(true);
     const newSearchParams = new URLSearchParams(searchParams.toString());
 
@@ -201,7 +243,7 @@ export default function MainTable({ filters, products }: MainTableProps) {
       newSearchParams.delete("familia");
     }
     router.push(`?${newSearchParams.toString()}`, { scroll: false });
-  }, [selectedFamilia]);
+  }, [selectedFamilia, deferFilterApply]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -265,7 +307,38 @@ export default function MainTable({ filters, products }: MainTableProps) {
     // Se você INSISTIR em .xls no nome:
     // XLSX.writeFile(wb, "tabela.xls");
   };
+  // adicione logo antes do return:
+  // usa o loading do pai se vier, senão o local
+  const showOverlay = (typeof isFetching === "boolean") ? isFetching : isLoading;
 
+  // dataset final a ser exibido (se aplicou o patch do "ignorar família" no modo defer, use o mesmo dataForTable aqui)
+  // Se você já tem `dataForTable` (que ignora família quando deferFilterApply=true), use-o. 
+  // Se não, use o que o hook já deu:
+  const allRows = table.getRowModel().rows; // ou use a saída correspondente ao seu dataForTable
+
+  const totalItems = allRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pagedRows = allRows.slice(start, end);
+  const currentItemsCount = pagedRows.length;     // ✅ o que falta pro Pagination
+  const firstItemIndex = totalItems === 0 ? 0 : start + 1;
+  const lastItemIndex = totalItems === 0 ? 0 : Math.min(end, totalItems);
+
+  const hasAnyRow = pagedRows.length > 0;
+  const emptyText = deferFilterApply
+    ? "Selecione uma família e clique em Filtrar"
+    : "Nenhum produto encontrado";
+
+  // antes do return:
+  const handlePageChangeWrap = (p: number) => {
+    onPageChange(p); // é obrigatório, então chama direto
+  };
+
+  const handlePageSizeChangeWrap = (size: number) => {
+    onPageSizeChange?.(size); // só chama se veio do pai
+  };
   return (
     <div className="w-full h-full flex flex-col">
       <TableHeader
@@ -282,47 +355,45 @@ export default function MainTable({ filters, products }: MainTableProps) {
         onResetColumnVisibility={resetColumnVisibility}
         availableColumns={AVAILABLE_COLUMNS}
         onExport={handleExport}
+        showApplyButton={deferFilterApply}
+        onApplyClick={(fam) => onApplyFilters?.(fam)}
+      // applyDisabled={showOverlay} // opcional
       />
 
       <div
         ref={tableContainerRef}
         className="flex-1 overflow-auto border border-gray-200 rounded-lg shadow-sm bg-white relative"
       >
-        {isLoading && (
+        {showOverlay && (
           <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center z-50 backdrop-blur-sm rounded-lg">
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="relative">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                 <div
                   className="absolute inset-0 rounded-full h-12 w-12 border-t-2 border-indigo-300 animate-spin"
-                  style={{
-                    animationDirection: "reverse",
-                    animationDuration: "1.5s",
-                  }}
-                ></div>
+                  style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+                />
               </div>
-
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-700">
-                  Carregando produtos...
-                </p>
+                <p className="text-sm font-medium text-gray-700">Carregando produtos...</p>
               </div>
-
               <div className="w-32 bg-gray-200 rounded-full h-1">
-                <div className="bg-indigo-600 h-1 rounded-full animate-pulse"></div>
+                <div className="bg-indigo-600 h-1 rounded-full animate-pulse" />
               </div>
             </div>
           </div>
         )}
+
         <div className="min-w-full">
-          {products.length === 0 ? (
+          {!showOverlay && !hasAnyRow ? (
             <div className="flex justify-center items-center min-h-[200px] text-gray-500">
-              Nenhum produto encontrado
+              {emptyText}
             </div>
           ) : (
             <table className="w-full divide-y divide-gray-200">
               <TableBody
                 table={table}
+                rows={pagedRows}  // ✅ só as linhas da página atual
                 dragState={dragState}
                 dragHandlers={dragHandlers}
                 columnOrder={columnOrder}
@@ -336,12 +407,25 @@ export default function MainTable({ filters, products }: MainTableProps) {
 
       <div className="flex justify-between items-center mt-4">
 
+        {/* Info de rodapé com números da página atual */}
         <TableFooterInfo
-          displayedItemsCount={filteredData?.length || 0}
+          displayedItemsCount={pagedRows.length}      // ✅ itens exibidos nesta página
           selectedItemsCount={selectedCount}
           hasCustomColumnOrder={columnOrder.length > 0}
           isDragging={dragState.isDragging}
         />
+
+        {/* Paginação (ajuste as props conforme seu componente Pagination) */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChangeWrap}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChangeWrap}
+          totalItems={totalItems}
+          currentItemsCount={currentItemsCount}
+        />
+
         <ColumnsDropdown
           availableColumns={AVAILABLE_COLUMNS}
           columnVisibility={columnVisibility}
@@ -355,8 +439,10 @@ export default function MainTable({ filters, products }: MainTableProps) {
         onClose={() => setIsModalOpen(false)}
         filters={filters}
         selectedProducts={selectedProducts}
-        orderQuantities={orderQuantities} // ✅ Passa as quantidades atualizadas
+        orderQuantities={orderQuantities}
       />
     </div>
   );
+
+
 }
