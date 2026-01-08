@@ -4,20 +4,39 @@
 import { GetBearerToken } from "@/app/utils/getBearerToken";
 
 export async function changePrice(body: any) {
-  const bearerToken = await GetBearerToken();
-  const response = await fetch(
-    "https://integrainc-senior-api.vercel.app/products/change-price",
-    {
-      method: "post",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${bearerToken ?? ""}`,
-      },
-    }
-  );
+ const bearerToken = await GetBearerToken();
+ const response = await fetch(
+  "https://integrainc-senior-api.vercel.app/products/change-price",
+  {
+   method: "post",
+   body: JSON.stringify(body),
+   headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${bearerToken ?? ""}`,
+   },
+  }
+ );
 
-  const responseJson = await response.json();
+ const responseJson = await response.json();
 
-  return { responseJson };
+ return { responseJson };
+}
+export async function importPrice(body: any) {
+ const bearerToken = await GetBearerToken();
+ const response = await fetch(
+  // "https://integrainc-senior-api.vercel.app/products/import-price",
+  "http://localhost:3000/products/import-price",
+  {
+   method: "post",
+   body: JSON.stringify(body),
+   headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${bearerToken ?? ""}`,
+   },
+  }
+ );
+
+ const responseJson = await response.json();
+
+ return { responseJson };
 }

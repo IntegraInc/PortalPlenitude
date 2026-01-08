@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { FiltersData } from "@/app/types/filterTypes";
+import ImportPrice from "./ImportPrice";
 
 interface TableHeaderProps {
   filters: Pick<FiltersData, "family">; // << só o que é usado
@@ -26,6 +27,8 @@ interface TableHeaderProps {
   onApplyFilters: () => void;   // << dispara a aplicação
   isApplying?: boolean;
   onExport?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onImportMerge: (rows: any[]) => void; // use TablePriceProduct se já tiver tipado igual
 }
 
 export default function TablePriceHeader({
@@ -51,6 +54,7 @@ export default function TablePriceHeader({
   onApplyFilters,
   isApplying = false,
   onExport,
+  onImportMerge
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isFamiliaDropdownOpen, setIsFamiliaDropdownOpen] = useState(false);
@@ -365,6 +369,11 @@ export default function TablePriceHeader({
         </svg>
         Exportar excel
       </button>
+      {/* Botao importar */}
+      <ImportPrice
+        selectedTablePrice={selectedTablePrice}
+        onAfterSuccess={onImportMerge}
+      />
       {/* Botão resetar ordem das colunas */}
       <button
         onClick={clearPersistedColumnOrder}
