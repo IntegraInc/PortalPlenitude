@@ -26,7 +26,7 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
 
   // filtros (famílias + tabelas)
   const [filtersRes, tablePriceRes] = await Promise.all([
-    fetch("https://integrainc-senior-api.vercel.app/utils/filters", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}utils/filters`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
       },
       cache: "no-store",
     }),
-    fetch("https://integrainc-senior-api.vercel.app/utils/filters/table-price", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}utils/filters/table-price`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export default async function TabelaPreco({ searchParams }: PageProps) {
   qs.set("limit", "1000");
 
   const resp = await fetch(
-    `https://integrainc-senior-api.vercel.app/products/all?${qs.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}products/all?${qs.toString()}`,
     {
       method: "GET",
       headers: {

@@ -14,6 +14,7 @@
   "@next/font": "^14.2.15",
   "@tanstack/react-table": "^8.21.3",
   "ag-grid-react": "^34.2.0",
+  "dotenv": "^17.2.3",
   "next": "^15.5.9",
   "nextjs-toploader": "^3.9.17",
   "papaparse": "^5.5.3",

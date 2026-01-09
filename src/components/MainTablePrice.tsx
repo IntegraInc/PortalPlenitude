@@ -3,7 +3,7 @@
 "use client";
 import * as XLSX from "xlsx";
 import { FiltersData, TablePriceProduct } from "@/app/types/filterTypes";
-import { useState, useRef, useEffect, useMemo, useTransition } from "react";
+import { useState, useRef, useEffect, useMemo, useTransition, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import TableFooterInfo from "./TableFooterInfo";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
@@ -15,6 +15,7 @@ import TablePriceBody from "./TablePriceBody";
 import { useTablePriceFilters } from "@/app/hooks/useTablePriceFilters";
 import ChangePriceModal from "./ChangePriceModal";
 import ColumnsDropdown from "./ColumnsDropdown";
+import Pagination from "@/components/Pagination";
 
 interface MainTablePriceProps {
   bearerToken: string | null;                // << NOVO: pra autorizar o fetch
@@ -50,11 +51,13 @@ export default function MainTablePrice({
 }: MainTablePriceProps) {
   const router = useRouter();
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
+
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
 
   function mergeImportedIntoTable(rowsFromBackend: TablePriceProduct[]) {
     if (!rowsFromBackend?.length) return;
@@ -124,14 +127,24 @@ export default function MainTablePrice({
     return sizeFromUrl > 0 ? sizeFromUrl : 50;
   });
 
+  const [bodyMetrics, setBodyMetrics] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    currentItemsCount: 0,
+    firstItemIndex: 0,
+    lastItemIndex: 0,
+    safePage: currentPage,
+    safePageSize: pageSize,
+  });
   // 🔎 Filtro no FRONT em cima de `data` (não do prop diretamente)
+  const [selectedFamilia, setSelectedFamilia] = useState<string>(familiaFromUrl || "");
   const {
     filteredData,
     searchTerm,
     setSearchTerm,
-    selectedFamilia,
-    setSelectedFamilia,
-  } = useTablePriceFilters(data, familiaFromUrl);
+
+
+  } = useTablePriceFilters(data, selectedFamilia);
 
   const totalItems = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -199,7 +212,7 @@ export default function MainTablePrice({
     if (marginPercent) qs.set("margin", marginPercent);
     if (markupPercent) qs.set("markup", markupPercent);
     qs.set("limit", "1000");
-    return `https://integrainc-senior-api.vercel.app/products/all?${qs.toString()}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}products/all?${qs.toString()}`;
   }
 
   function buildPageQuery() {
@@ -213,10 +226,48 @@ export default function MainTablePrice({
     return qs;
   }
 
+  // async function handleApplyFilters() {
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await fetch(buildApiUrl(), {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${bearerToken ?? ""}`,
+  //       },
+  //       cache: "no-store",
+  //     });
+  //     if (!res.ok) throw new Error("Falha ao buscar produtos");
+  //     const json: { data?: TablePriceProduct[] } = await res.json();
+  //     setData(json?.data ?? []);
+
+  //     // sincroniza a URL sem navegação pesada
+  //     startTransition(() => {
+  //       router.replace(`${pathname}?${buildPageQuery().toString()}`, {
+  //         scroll: false,
+  //       });
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
+  // ----------------------------------------------------------
   async function handleApplyFilters() {
     setIsLoading(true);
     try {
-      const res = await fetch(buildApiUrl(), {
+      const qs = new URLSearchParams();
+      if (selectedFamilia) qs.set("family", selectedFamilia);
+      if (selectedTablePrice) qs.set("tablePrice", selectedTablePrice);
+      if (marginPercent) qs.set("margin", marginPercent);
+      if (markupPercent) qs.set("markup", markupPercent);
+      qs.set("limit", "1000");
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}products/all?${qs.toString()}`;
+      console.log("➡️ Fetching:", url); // 👈 debug
+
+      const res = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -228,11 +279,15 @@ export default function MainTablePrice({
       const json: { data?: TablePriceProduct[] } = await res.json();
       setData(json?.data ?? []);
 
-      // sincroniza a URL sem navegação pesada
       startTransition(() => {
-        router.replace(`${pathname}?${buildPageQuery().toString()}`, {
-          scroll: false,
-        });
+        const qp = new URLSearchParams();
+        if (selectedFamilia) qp.set("familia", selectedFamilia);
+        if (selectedTablePrice) qp.set("tablePrice", selectedTablePrice);
+        if (marginPercent) qp.set("margin", marginPercent);
+        if (markupPercent) qp.set("markup", markupPercent);
+        qp.set("page", String(currentPage));
+        qp.set("pageSize", String(pageSize));
+        router.replace(`${pathname}?${qp.toString()}`, { scroll: false });
       });
     } catch (err) {
       console.error(err);
@@ -240,7 +295,6 @@ export default function MainTablePrice({
       setIsLoading(false);
     }
   }
-  // ----------------------------------------------------------
 
   const handleOpenModal = () => setIsModalOpen(true);
 
@@ -291,7 +345,10 @@ export default function MainTablePrice({
     // Se você INSISTIR em .xls no nome:
     // XLSX.writeFile(wb, "tabela.xls");
   };
-
+  //eslint-disable-next-line
+  const handleMetricsChange = useCallback((m: any) => {
+    setBodyMetrics(m);
+  }, []);
   return (
     <div className="w-full h-full flex flex-col">
       <TablePriceHeader
@@ -356,139 +413,34 @@ export default function MainTablePrice({
                 setColumnOrder={setColumnOrder}
                 currentPage={currentPage}
                 pageSize={pageSize}
+                onMetricsChange={handleMetricsChange}   // << NOVO
               />
             </table>
           )}
         </div>
       </div>
-
-      <TableFooterInfo
-        displayedItemsCount={filteredData?.length || 0}
-        selectedItemsCount={selectedCount}
-        hasCustomColumnOrder={columnOrder.length > 0}
-        isDragging={dragState.isDragging}
-      />
-
-
-
-      {/* Footer de paginação */}
-
-      <div className="flex items-center justify-between mt-4">
-        <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
-          <div>
-            Mostrando <strong>{fromItem}</strong>–<strong>{toItem}</strong> de{" "}
-            <strong>{totalItems}</strong> registro(s)
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <span>Linhas por página:</span>
-              <select
-                className="border border-gray-300 rounded px-2 py-1 text-xs"
-                value={pageSize}
-                onChange={(e) => handleChangePageSize(Number(e.target.value))}
-              >
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                className="px-2 py-1 border border-gray-300 rounded disabled:opacity-40"
-                onClick={() => handleChangePage(currentPage - 1)}
-                disabled={currentPage <= 1}
-              >
-                {"<"}
-              </button>
-              <span>
-                Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
-              </span>
-              <button
-                className="px-2 py-1 border border-gray-300 rounded disabled:opacity-40"
-                onClick={() => handleChangePage(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-              >
-                {">"}
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Dropddown de visibilidade de colunas */}
-        {/* <div className="flex  relative" ref={dropdownRef}>
-          <label className="text-sm font-medium text-gray-700 mb-1">
-            Colunas ({visibleColumnsCount}/{AVAILABLE_COLUMNS.length})
-          </label>
-          <button
-            onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48 text-left bg-white hover:bg-gray-50 flex items-center justify-between"
-          >
-            <span>Opções</span>
-            <svg
-              className={`w-4 h-4 transition-transform ${isColumnDropdownOpen ? "rotate-180" : ""
-                }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-
-          {isColumnDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
-              <div className="p-2">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">
-                  Colunas ({visibleColumnsCount}/{AVAILABLE_COLUMNS.length}{" "}
-                  visíveis)
-                </div>
-
-                {AVAILABLE_COLUMNS.length === 0 ? (
-                  <div className="text-sm text-gray-500 p-2 text-center">
-                    Nenhuma coluna disponível
-                  </div>
-                ) : (
-                  AVAILABLE_COLUMNS.map((column) => {
-                    const isVisible = isColumnVisible(column.id);
-
-                    return (
-                      <label
-                        key={column.id}
-                        className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!isVisible}
-                          onChange={() => {
-                            toggleColumnVisibility?.(column.id);
-                          }}
-                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700 flex-1">
-                          {column.header}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${!isVisible
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                            }`}
-                        >
-                          {!isVisible ? "Visível" : "Oculta"}
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-        </div> */}
+      <div className="flex justify-between items-center mt-4">
+        <TableFooterInfo
+          displayedItemsCount={filteredData?.length || 0}
+          selectedItemsCount={selectedCount}
+          hasCustomColumnOrder={columnOrder.length > 0}
+          isDragging={dragState.isDragging}
+        />
+        <Pagination
+          currentPage={bodyMetrics.safePage}
+          totalPages={bodyMetrics.totalPages}
+          onPageChange={(p) => setCurrentPage(p)}
+          pageSize={bodyMetrics.safePageSize}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setCurrentPage(1);
+          }}
+          totalItems={bodyMetrics.totalItems}
+          currentItemsCount={bodyMetrics.currentItemsCount}
+        // se seu Pagination aceitar range, pode passar também:
+        // firstItemIndex={bodyMetrics.firstItemIndex}
+        // lastItemIndex={bodyMetrics.lastItemIndex}
+        />
         <ColumnsDropdown
           availableColumns={AVAILABLE_COLUMNS}
           columnVisibility={columnVisibility}

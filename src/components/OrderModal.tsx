@@ -22,7 +22,7 @@ interface OrderData {
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  filters: FiltersData;
+  filters: Pick<FiltersData, "family" | "supplyer" | "paymentCondition" | "paymentMethod">;
   selectedProducts: Product[];
   orderQuantities: Record<string, number>;
 }
