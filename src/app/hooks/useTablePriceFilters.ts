@@ -1,49 +1,35 @@
-import { useState, useEffect } from "react";
+// useTablePriceFilters.ts
+import { useMemo, useState } from "react";
+import type { TablePriceProduct } from "@/app/types/filterTypes";
 
-// Campos mínimos que o hook realmente usa:
-type BasicFields = {
- description?: string | null;
- productCode?: string | null;
- familyCode?: string | null;
-};
-
-/**
- * Hook genérico para filtrar produtos por busca textual e família.
- * Funciona para Product[] e TablePriceProduct[] desde que tenham os campos básicos.
- */
-export function useTablePriceFilters<T extends BasicFields>(
- products: T[],
- initialFamilia = ""
+export function useTablePriceFilters(
+ data: TablePriceProduct[],
+ selectedFamilia: string // valor controlado pelo pai
 ) {
- const [filteredData, setFilteredData] = useState<T[]>(products);
  const [searchTerm, setSearchTerm] = useState("");
- const [selectedFamilia, setSelectedFamilia] =
-  useState<string>(initialFamilia);
 
- useEffect(() => {
-  let filtered = [...(products ?? [])];
+ // ⚠️ Se o backend já filtra por família, você pode ignorar selectedFamilia aqui
+ const filteredData = useMemo(() => {
+  let rows = data;
 
-  if (searchTerm.trim()) {
-   const term = searchTerm.toLowerCase();
-   filtered = filtered.filter((p) => {
-    const desc = p.description?.toString().toLowerCase() ?? "";
-    const code = p.productCode?.toString().toLowerCase() ?? "";
-    return desc.includes(term) || code.includes(term);
+  // (Opcional) aplicar família no front:
+  // if (selectedFamilia) {
+  //   rows = rows.filter(p => String(p.familyCode) === String(selectedFamilia));
+  // }
+
+  const term = searchTerm.trim().toLowerCase();
+  if (term) {
+   rows = rows.filter((p) => {
+    const code = String(p.productCode ?? "").toLowerCase();
+    const barcode = String(p.barcode ?? "").toLowerCase();
+    const desc = String(p.description ?? "").toLowerCase();
+    return (
+     code.includes(term) || barcode.includes(term) || desc.includes(term)
+    );
    });
   }
+  return rows;
+ }, [data, selectedFamilia, searchTerm]);
 
-  if (selectedFamilia && selectedFamilia.trim() !== "") {
-   filtered = filtered.filter((p) => p.familyCode === selectedFamilia);
-  }
-
-  setFilteredData(filtered);
- }, [products, searchTerm, selectedFamilia]);
-
- return {
-  filteredData,
-  searchTerm,
-  setSearchTerm,
-  selectedFamilia,
-  setSelectedFamilia,
- };
+ return { filteredData, searchTerm, setSearchTerm };
 }

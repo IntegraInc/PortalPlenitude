@@ -328,7 +328,7 @@ export default function MainTable({ filters,
 
   const hasAnyRow = pagedRows.length > 0;
   const emptyText = deferFilterApply
-    ? "Selecione uma família e clique em Filtrar"
+    ? "Selecione uma família e clique em aplicar filtro"
     : "Nenhum produto encontrado";
 
   // antes do return:

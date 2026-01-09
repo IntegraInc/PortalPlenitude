@@ -130,7 +130,7 @@ export default function TablePriceHeader({
     "Selecione uma tabela";
 
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-4">
+    <div className="flex flex-row items-end  gap-3 mb-4 ">
       {/* Campo de busca */}
       <div className="flex flex-col">
         <label className="text-sm font-medium text-gray-700 mb-1">Buscar</label>
@@ -141,14 +141,7 @@ export default function TablePriceHeader({
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-72"
         />
       </div>
-      <button
-        onClick={onApplyFilters}
-        disabled={isApplying}
-        className="px-4 py-2 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
-        title="Aplicar filtros e atualizar a listagem"
-      >
-        {isApplying ? "Aplicando..." : "Aplicar filtros"}
-      </button>
+
 
       {/* Combobox Família */}
       <div className="flex flex-col relative" ref={familiaDropdownRef}>
@@ -236,7 +229,7 @@ export default function TablePriceHeader({
       {/* Combobox Tabela de Preço */}
       <div className="flex flex-col relative" ref={tablePriceDropdownRef}>
         <label className="text-sm font-medium text-gray-700 mb-1">
-          Tabela de Preço
+          Tab. Preço
         </label>
         <button
           onClick={() => setIsTablePriceOpen(!isTablePriceOpen)}
@@ -351,97 +344,126 @@ export default function TablePriceHeader({
           className="border border-gray-300 rounded-md px-3 py-2 text-sm w-28 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
+      {/* Botão para aplicar filtros */}
+      <div
+        className="
+    flex items-end gap-3
 
+    [&_button]:!h-10
+    [&_button]:!px-4
+    [&_button]:rounded-md
+    [&_button]:text-sm
+    [&_button]:font-medium
+    [&_button]:inline-flex
+    [&_button]:items-center
+    [&_button]:justify-center
+    [&_button]:leading-none
+    [&_button>svg]:w-4
+    [&_button>svg]:h-4
+    [&_button]:min-w-[120px]   /* opcional p/ larguras iguais */
+  "
+      >
 
-      {/* Botão exportar */}
-      <button
-        onClick={onExport}
-        className="px-3 py-2 rounded-md text-sm font-medium bg-green-200 text-green-800 hover:bg-green-300 transition-colors cursor-pointer flex items-center gap-2"
-        title="Exportar os dados exibidos na tabela"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
-          />
-        </svg>
-        Exportar excel
-      </button>
-      {/* Botao importar */}
-      <ImportPrice
-        selectedTablePrice={selectedTablePrice}
-        onAfterSuccess={onImportMerge}
-      />
-      {/* Botão resetar ordem das colunas */}
-      <button
-        onClick={clearPersistedColumnOrder}
-        className="px-3 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors cursor-pointer flex items-center gap-2"
-        title="Resetar ordem das colunas para o padrão"
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+        <button
+          onClick={onApplyFilters}
+          disabled={isApplying}
+          className=" bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+          title="Aplicar filtros e atualizar a listagem"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
-        Resetar Ordem
-      </button>
+          {isApplying ? "Aplicando..." : "Aplicar filtro"}
+        </button>
 
-      {/* Botão resetar visibilidade das colunas */}
-      <button
-        onClick={onResetColumnVisibility}
-        className="px-3 py-2 rounded-md text-sm font-medium bg-orange-200 text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer flex items-center gap-2"
-        title="Resetar visibilidade das colunas"
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+        {/* Botão exportar */}
+        <button
+          onClick={onExport}
+          className="px-3 py-2 rounded-md text-sm font-medium bg-green-200 text-green-800 hover:bg-green-300 transition-colors cursor-pointer flex items-center gap-2"
+          title="Exportar os dados exibidos na tabela"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
-        Resetar Visibilidade
-      </button>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
+            />
+          </svg>
+          Exportar excel
+        </button>
+        {/* Botao importar */}
+        <ImportPrice
+          selectedTablePrice={selectedTablePrice}
+          onAfterSuccess={onImportMerge}
+        />
+        {/* Botão resetar ordem das colunas */}
+        <button
+          onClick={clearPersistedColumnOrder}
+          className="px-3 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors cursor-pointer flex items-center gap-2"
+          title="Resetar ordem das colunas para o padrão"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Resetar Ordem
+        </button>
 
-      {/* Botão enviar */}
-      <button
-        onClick={onOpenModal}
-        disabled={selectedCount === 0}
-        className={`px-3 py-2  rounded-md text-sm font-medium  cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
-          ? "bg-indigo-600 text-white hover:bg-indigo-700"
-          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+        {/* Botão resetar visibilidade das colunas */}
+        <button
+          onClick={onResetColumnVisibility}
+          className="px-3 py-2 rounded-md text-sm font-medium bg-orange-200 text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer flex items-center gap-2"
+          title="Resetar visibilidade das colunas"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-          />
-        </svg>
-        Alterar Preço
-      </button>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Resetar Visibilidade
+        </button>
+
+        {/* Botão enviar */}
+        <button
+          onClick={onOpenModal}
+          disabled={selectedCount === 0}
+          className={`px-3 py-2  rounded-md text-sm font-medium  cursor-pointer transition-colors flex items-center gap-2 ${selectedCount > 0
+            ? "bg-indigo-600 text-white hover:bg-indigo-700"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
+          </svg>
+          Alterar Preço
+        </button>
+      </div>
+
     </div>
   );
 }

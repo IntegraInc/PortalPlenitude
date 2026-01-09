@@ -3,7 +3,7 @@
 "use client";
 import * as XLSX from "xlsx";
 import { FiltersData, TablePriceProduct } from "@/app/types/filterTypes";
-import { useState, useRef, useEffect, useMemo, useTransition } from "react";
+import { useState, useRef, useEffect, useMemo, useTransition, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import TableFooterInfo from "./TableFooterInfo";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
@@ -137,13 +137,14 @@ export default function MainTablePrice({
     safePageSize: pageSize,
   });
   // 🔎 Filtro no FRONT em cima de `data` (não do prop diretamente)
+  const [selectedFamilia, setSelectedFamilia] = useState<string>(familiaFromUrl || "");
   const {
     filteredData,
     searchTerm,
     setSearchTerm,
-    selectedFamilia,
-    setSelectedFamilia,
-  } = useTablePriceFilters(data, familiaFromUrl);
+
+
+  } = useTablePriceFilters(data, selectedFamilia);
 
   const totalItems = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -225,10 +226,48 @@ export default function MainTablePrice({
     return qs;
   }
 
+  // async function handleApplyFilters() {
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await fetch(buildApiUrl(), {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${bearerToken ?? ""}`,
+  //       },
+  //       cache: "no-store",
+  //     });
+  //     if (!res.ok) throw new Error("Falha ao buscar produtos");
+  //     const json: { data?: TablePriceProduct[] } = await res.json();
+  //     setData(json?.data ?? []);
+
+  //     // sincroniza a URL sem navegação pesada
+  //     startTransition(() => {
+  //       router.replace(`${pathname}?${buildPageQuery().toString()}`, {
+  //         scroll: false,
+  //       });
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
+  // ----------------------------------------------------------
   async function handleApplyFilters() {
     setIsLoading(true);
     try {
-      const res = await fetch(buildApiUrl(), {
+      const qs = new URLSearchParams();
+      if (selectedFamilia) qs.set("family", selectedFamilia);
+      if (selectedTablePrice) qs.set("tablePrice", selectedTablePrice);
+      if (marginPercent) qs.set("margin", marginPercent);
+      if (markupPercent) qs.set("markup", markupPercent);
+      qs.set("limit", "1000");
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}products/all?${qs.toString()}`;
+      console.log("➡️ Fetching:", url); // 👈 debug
+
+      const res = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -240,11 +279,15 @@ export default function MainTablePrice({
       const json: { data?: TablePriceProduct[] } = await res.json();
       setData(json?.data ?? []);
 
-      // sincroniza a URL sem navegação pesada
       startTransition(() => {
-        router.replace(`${pathname}?${buildPageQuery().toString()}`, {
-          scroll: false,
-        });
+        const qp = new URLSearchParams();
+        if (selectedFamilia) qp.set("familia", selectedFamilia);
+        if (selectedTablePrice) qp.set("tablePrice", selectedTablePrice);
+        if (marginPercent) qp.set("margin", marginPercent);
+        if (markupPercent) qp.set("markup", markupPercent);
+        qp.set("page", String(currentPage));
+        qp.set("pageSize", String(pageSize));
+        router.replace(`${pathname}?${qp.toString()}`, { scroll: false });
       });
     } catch (err) {
       console.error(err);
@@ -252,7 +295,6 @@ export default function MainTablePrice({
       setIsLoading(false);
     }
   }
-  // ----------------------------------------------------------
 
   const handleOpenModal = () => setIsModalOpen(true);
 
@@ -303,7 +345,10 @@ export default function MainTablePrice({
     // Se você INSISTIR em .xls no nome:
     // XLSX.writeFile(wb, "tabela.xls");
   };
-
+  //eslint-disable-next-line
+  const handleMetricsChange = useCallback((m: any) => {
+    setBodyMetrics(m);
+  }, []);
   return (
     <div className="w-full h-full flex flex-col">
       <TablePriceHeader
@@ -368,7 +413,7 @@ export default function MainTablePrice({
                 setColumnOrder={setColumnOrder}
                 currentPage={currentPage}
                 pageSize={pageSize}
-                onMetricsChange={(m) => setBodyMetrics(m)}   // << NOVO
+                onMetricsChange={handleMetricsChange}   // << NOVO
               />
             </table>
           )}
