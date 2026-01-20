@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Product, FiltersData } from "@/app/types/filterTypes";
 import MainTable from "@/components/MainTable";
+import { toast } from "react-toastify";
 
 type Props = {
     bearerToken: string;
@@ -69,6 +70,7 @@ export default function ClientAnalysis({
         } catch (e) {
             if (e instanceof DOMException && e.name === "AbortError") return;
             console.error(e);
+            toast.error("Erro ao buscar produtos. Parece que a lista veio vazia.  Tente novamente.");
         } finally {
             setLoading(false);
         }

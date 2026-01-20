@@ -115,28 +115,36 @@ export default function MainTable({ filters,
 
   const { columnOrder, setColumnOrder, clearPersistedColumnOrder } =
     useLocalStorage();
+  const hasMonths = monthKeys.length > 0;
 
   useEffect(() => {
-    // ids reais que existem HOJE (fonte da verdade)
+    // 🚫 enquanto não tiver meses, NÃO inicializa/normaliza order
+    // isso evita "fase A" sobrescrever o estado salvo
+    if (!hasMonths) return;
+
     const baseIds = ["select", "productCode", "barcode", "description"];
-    const dynamicIds = AVAILABLE_COLUMNS.map(c => c.id);
-    const allIds = Array.from(new Set([...baseIds, ...dynamicIds])); // sem duplicar
+    const dynamicIds = AVAILABLE_COLUMNS.map((c) => c.id);
+    const allIds = Array.from(new Set([...baseIds, ...dynamicIds]));
 
     setColumnOrder((prev) => {
       const prevArr = Array.isArray(prev) ? prev : [];
 
-      // 1) remove ids que não existem mais (ex.: monthlySales_* antigo)
-      const kept = prevArr.filter((id) => allIds.includes(id));
+      // se tiver salvo, apenas saneia
+      if (prevArr.length > 0) {
+        const kept = prevArr.filter((id) => allIds.includes(id));
+        const missing = allIds.filter((id) => !kept.includes(id));
+        return [
+          "select",
+          ...kept.filter((i) => i !== "select"),
+          ...missing.filter((i) => i !== "select"),
+        ];
+      }
 
-      // 2) adiciona os que estão faltando (ex.: ms_JAN_2026 novo)
-      const missing = allIds.filter((id) => !kept.includes(id));
-
-      // 3) garante select sempre na frente
-      const next = ["select", ...kept.filter(id => id !== "select"), ...missing.filter(id => id !== "select")];
-
-      return next;
+      // se não tiver salvo, usa default (com meses)
+      return ["select", ...allIds.filter((id) => id !== "select")];
     });
-  }, [AVAILABLE_COLUMNS, setColumnOrder]);
+  }, [hasMonths, AVAILABLE_COLUMNS, setColumnOrder]);
+
 
 
   const {
@@ -158,18 +166,21 @@ export default function MainTable({ filters,
     );
 
     setColumnVisibility((old) => {
+      const prev = old ?? {};
       const next: Record<string, boolean> = {};
 
-      // mantém só ids válidos
-      for (const id of ids) {
-        next[id] = old?.[id];
+      // mantém ids atuais
+      for (const id of ids) next[id] = prev[id];
+
+      // ✅ mantém meses antigos mesmo quando ainda não existem na tela
+      for (const key of Object.keys(prev)) {
+        if (key.startsWith("ms_")) next[key] = prev[key];
       }
 
-      // defaults que nunca podem sumir
+      // travas
       next.select = true;
       next.description = true;
 
-      // para meses novos (undefined), deixa como undefined mesmo (visível pelo helper)
       return next;
     });
   }, [AVAILABLE_COLUMNS, setColumnVisibility]);
