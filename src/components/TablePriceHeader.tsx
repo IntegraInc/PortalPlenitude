@@ -29,6 +29,7 @@ interface TableHeaderProps {
   onExport?: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportMerge: (rows: any[]) => void; // use TablePriceProduct se já tiver tipado igual
+  isExporting?: boolean;
 }
 
 export default function TablePriceHeader({
@@ -54,6 +55,7 @@ export default function TablePriceHeader({
   onApplyFilters,
   isApplying = false,
   onExport,
+  isExporting,
   onImportMerge
 }: TableHeaderProps) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
@@ -376,19 +378,57 @@ export default function TablePriceHeader({
         {/* Botão exportar */}
         <button
           onClick={onExport}
-          className="px-3 py-2 rounded-md text-sm font-medium bg-green-200 text-green-800 hover:bg-green-300 transition-colors cursor-pointer flex items-center gap-2"
-          title="Exportar os dados exibidos na tabela"
+          className={[
+            "px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+            isExporting
+              ? "bg-green-200 text-green-800 opacity-60 cursor-not-allowed pointer-events-none"
+              : "bg-green-200 text-green-800 hover:bg-green-300 cursor-pointer",
+          ].join(" ")}
+          title={isExporting ? "Exportando..." : "Exportar os dados exibidos na tabela"}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
-            />
-          </svg>
-          Exportar excel
+          {isExporting ? (
+            // ícone de loading (spinner)
+            <svg
+              className="w-4 h-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+              />
+            </svg>
+          ) : (
+            // teu ícone normal
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v3h16v-3"
+              />
+            </svg>
+          )}
+
+          {isExporting ? "Exportando..." : "Exportar excel"}
         </button>
+
         {/* Botao importar */}
         <ImportPrice
           selectedTablePrice={selectedTablePrice}

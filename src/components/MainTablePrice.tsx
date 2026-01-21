@@ -16,6 +16,7 @@ import { useTablePriceFilters } from "@/app/hooks/useTablePriceFilters";
 import ChangePriceModal from "./ChangePriceModal";
 import ColumnsDropdown from "./ColumnsDropdown";
 import Pagination from "@/components/Pagination";
+import { toast } from "react-toastify";
 
 interface MainTablePriceProps {
   bearerToken: string | null;                // << NOVO: pra autorizar o fetch
@@ -51,6 +52,7 @@ export default function MainTablePrice({
 }: MainTablePriceProps) {
   const router = useRouter();
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -308,43 +310,93 @@ export default function MainTablePrice({
     setCurrentPage(1);
   };
 
-  const handleExport = () => {
-    // pega as linhas que estão no modelo atual (filtrado + ordenado)
-    const rows = table.getRowModel().rows;
 
-    // opcional: exportar apenas colunas visíveis
-    const visibleCols = table
-      .getAllLeafColumns()
-      .filter((c) => c.getIsVisible())
-      .map((c) => ({
-        id: c.id,
-        header:
-          typeof c.columnDef.header === "string"
-            ? c.columnDef.header
-            : c.id,
-      }));
 
-    const dataToExport = rows.map((row) => {
-      const obj: Record<string, unknown> = {};
+  const handleExport = async () => {
+    try {
+      const tablePrice = selectedTablePrice; // ex: "TII"
+      const family = selectedFamilia;         // ex: "904" opcional
+      setIsExporting(true);
 
-      visibleCols.forEach((col) => {
-        const value = row.getValue(col.id);
-        obj[col.header] = value ?? "";
+      if (!tablePrice) {
+        toast.error("Selecione a Tabela de Preço antes de exportar.");
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set("tablePrice", tablePrice);
+      if (family) params.set("family", family);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}products/export-price?${params.toString()}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${bearerToken}` },
+        }
+      );
+      if (!res.ok) {
+        let errMsg = `Erro ao exportar (HTTP ${res.status}).`;
+        try {
+          const err = await res.json();
+          errMsg = err?.message || err?.error || errMsg;
+        } catch { }
+        toast.error(errMsg);
+        return;
+      }
+
+      // 🔥 pega CSV como TEXTO
+      let csvText = await res.text();
+
+      // remove BOM
+      csvText = csvText.replace(/^\uFEFF/, "").trim();
+
+      if (!csvText || csvText.length < 5) {
+        toast.error("CSV vazio retornado pelo servidor.");
+        return;
+      }
+
+      // tenta detectar separador
+      const commaCount = (csvText.match(/,/g) || []).length;
+      const semiCount = (csvText.match(/;/g) || []).length;
+      const FS = semiCount > commaCount ? ";" : ",";
+
+      // ⚠️ parse CSV -> workbook
+      const wb = XLSX.read(csvText, {
+        type: "string",
+        FS,          // separador
+        raw: true,
       });
 
-      return obj;
-    });
+      // força nome da planilha
+      const firstSheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[firstSheetName];
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Tabela");
+      if (!ws) {
+        toast.error("Falha ao converter CSV em planilha.");
+        return;
+      }
 
-    // ✅ RECOMENDADO: salvar como .xlsx
-    XLSX.writeFile(wb, "preco.xlsx");
+      const outWb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(outWb, ws, "Tabela");
 
-    // Se você INSISTIR em .xls no nome:
-    // XLSX.writeFile(wb, "tabela.xls");
+      const filename =
+        `export-precos-${tablePrice}` +
+        (family ? `-fam-${family}` : "") +
+        `.xlsx`;
+
+      XLSX.writeFile(outWb, filename);
+      toast.success("XLSX exportado com sucesso.");
+    } catch (e: unknown) {
+      console.error(e);
+      toast.error("Falha ao exportar XLSX.");
+    }
+    finally {
+      setIsExporting(false);
+    }
   };
+
+
+
   //eslint-disable-next-line
   const handleMetricsChange = useCallback((m: any) => {
     setBodyMetrics(m);
@@ -352,6 +404,7 @@ export default function MainTablePrice({
   return (
     <div className="w-full h-full flex flex-col">
       <TablePriceHeader
+        isExporting={isExporting}
         onImportMerge={mergeImportedIntoTable}
         onExport={handleExport}
         onApplyFilters={handleApplyFilters}                 // << usa o handler novo
