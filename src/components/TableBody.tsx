@@ -72,13 +72,27 @@ export default function TableBody({
     });
   };
 
-  const filteredRows = table.getRowModel().rows.filter((row) =>
+  const baseRows = rows ?? table.getRowModel().rows;
+  const filteredRows = baseRows.filter((row) =>
     Object.entries(columnFilters).every(([colId, hidden]) => {
       const val = String(row.getValue(colId) ?? "");
       return !hidden.has(val);
     })
   );
-  const renderRows = rows ?? table.getRowModel().rows;
+
+  const renderRows = filteredRows;
+
+  const getColumnLabel = (column: any) => {
+    const metaLabel = column.columnDef?.meta?.label;
+    if (metaLabel) return String(metaLabel);
+
+    const h = column.columnDef?.header;
+
+    if (typeof h === "string") return h;
+
+    // fallback seguro
+    return String(column.id ?? "");
+  };
   return (
     <>
       <thead className="bg-gray-50 select-none sticky top-0 z-30">
@@ -220,7 +234,7 @@ export default function TableBody({
                         >
                           <div className="flex items-center justify-between mb-1">
                             <p className="text-xs text-gray-600 font-semibold truncate">
-                              Filtrar {header.column.columnDef.header as string}
+                              Filtrar {getColumnLabel(header.column)}
                             </p>
                             <button
                               className="text-[11px] px-2 py-0.5 rounded hover:bg-gray-100"
