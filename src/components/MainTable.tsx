@@ -282,26 +282,49 @@ export default function MainTable({ filters,
     // ✅ Agora você tem acesso aos produtos selecionados no modal
   };
   const handleExport = () => {
-    // pega as linhas que estão no modelo atual (filtrado + ordenado)
+    // garante que o último input confirme o valor (onBlur)
+    (document.activeElement as HTMLElement | null)?.blur();
+
     const rows = table.getRowModel().rows;
 
-    // opcional: exportar apenas colunas visíveis
     const visibleCols = table
       .getAllLeafColumns()
       .filter((c) => c.getIsVisible())
-      .map((c) => ({
-        id: c.id,
-        header:
+      .map((c) => {
+        const header =
           typeof c.columnDef.header === "string"
             ? c.columnDef.header
-            : c.id,
-      }));
+            : c.id;
+
+        return { id: c.id, header };
+      });
 
     const dataToExport = rows.map((row) => {
       const obj: Record<string, unknown> = {};
 
       visibleCols.forEach((col) => {
-        const value = row.getValue(col.id);
+        let value: unknown = row.getValue(col.id);
+
+        // ✅ caso especial: Qtd. a Comprar (input)
+        const isOrderQty =
+          col.id === "orderQuantity" ||
+          col.header === "Qtd. a Comprar";
+
+        if (isOrderQty) {
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const key = String((row.original as any).productCode ?? "").trim();
+
+          const raw =
+            (orderQuantities && orderQuantities[key] != null
+              ? orderQuantities[key]
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              : (row.original as any).quantityToBuy) ?? 0;
+
+          const n = Number(raw);
+          value = Number.isFinite(n) ? n : 0;
+        }
+
         obj[col.header] = value ?? "";
       });
 
@@ -311,13 +334,10 @@ export default function MainTable({ filters,
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Tabela");
-
-    // ✅ RECOMENDADO: salvar como .xlsx
     XLSX.writeFile(wb, "analise.xlsx");
-
-    // Se você INSISTIR em .xls no nome:
-    // XLSX.writeFile(wb, "tabela.xls");
   };
+
+
   // adicione logo antes do return:
   // usa o loading do pai se vier, senão o local
   const showOverlay = (typeof isFetching === "boolean") ? isFetching : isLoading;
