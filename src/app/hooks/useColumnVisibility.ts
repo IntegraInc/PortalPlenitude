@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { VisibilityState } from "@tanstack/react-table";
 
-const STORAGE_KEY = "table-column-visibility";
+// const STORAGE_KEY = "table-column-visibility";
 
 // IMPORTANTE:
 // TanStack: columnVisibility[id] === false => escondida
@@ -12,13 +12,13 @@ const STORAGE_KEY = "table-column-visibility";
 //
 // Aí no resto do código você troca o helper isColumnVisible (te passo abaixo).
 
-export function useColumnVisibility() {
+export function useColumnVisibility(storageKey: string) {
  const [columnVisibility, setColumnVisibilityState] =
   useState<VisibilityState>({});
 
  // carrega do localStorage (se não tiver, começa vazio)
  useEffect(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(storageKey);
   if (!saved) return;
 
   try {
@@ -28,7 +28,7 @@ export function useColumnVisibility() {
    }
   } catch (err) {
    console.error("Erro ao carregar visibilidade das colunas:", err);
-   localStorage.removeItem(STORAGE_KEY);
+   localStorage.removeItem(storageKey);
   }
  }, []);
 
@@ -37,7 +37,7 @@ export function useColumnVisibility() {
   (updater: VisibilityState | ((old: VisibilityState) => VisibilityState)) => {
    setColumnVisibilityState((old) => {
     const next = typeof updater === "function" ? updater(old) : updater;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey, JSON.stringify(next));
     return next;
    });
   },
@@ -58,7 +58,7 @@ export function useColumnVisibility() {
  // reset: limpa tudo e deixa o MainTable reconstruir/normalizar
  const resetColumnVisibility = useCallback(() => {
   setColumnVisibilityState({});
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(storageKey);
  }, []);
 
  return {

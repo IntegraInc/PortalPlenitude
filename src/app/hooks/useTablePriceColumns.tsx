@@ -192,13 +192,17 @@ export function useTablePriceColumns({
   const handleColumnOrderChange: OnChangeFn<ColumnOrderState> = useCallback(
     (updaterOrValue) => {
       if (typeof updaterOrValue === "function") {
-        setColumnOrder(updaterOrValue(columnOrder));
+        // ✅ pega o estado REAL atual da tabela (não do closure)
+        const current = table.getState().columnOrder;
+        const next = updaterOrValue(current);
+        setColumnOrder(next);
       } else {
         setColumnOrder(updaterOrValue);
       }
     },
-    [columnOrder, setColumnOrder]
+    [setColumnOrder]
   );
+
 
   // ✅ Atualiza a quantidade de um produto
   const updateOrderQuantity = useCallback(

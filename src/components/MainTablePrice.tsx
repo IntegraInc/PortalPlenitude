@@ -34,7 +34,8 @@ const AVAILABLE_COLUMNS = [
   { id: "category", header: "Categoria" },
   { id: "lastPurchaseCost", header: "Último Custo" },
   { id: "capPrice", header: "Preço Capa" },
-  { id: "capPercent", header: "% Capa" },
+  { id: "venCapPercent", header: "% Desc Editora" },
+  { id: "publisherPercentDiscount", header: " % Venda sobre Custo" },
   { id: "salePrice", header: "Preço Venda" },
   { id: "markupPercent", header: "% Markup" },
   { id: "marginPercent", header: "% Margem" },
@@ -161,13 +162,13 @@ export default function MainTablePrice({
   const fromItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const toItem = totalItems === 0 ? 0 : Math.min(currentPage * pageSize, totalItems);
 
-  const { columnOrder, setColumnOrder, clearPersistedColumnOrder } = useLocalStorage();
+  const { columnOrder, setColumnOrder, clearPersistedColumnOrder } = useLocalStorage("plenitude:price:columnOrder");
   const {
     columnVisibility,
     setColumnVisibility,
     toggleColumnVisibility,
     resetColumnVisibility,
-  } = useColumnVisibility();
+  } = useColumnVisibility("plenitude:price:columnVisibility");
 
   const isColumnVisible = (columnId: string) => {
     return columnVisibility[columnId] !== true;
@@ -191,6 +192,14 @@ export default function MainTablePrice({
     onColumnVisibilityChange: setColumnVisibility,
     onOrderQuantitiesChange: setOrderQuantities,
   });
+
+  useEffect(() => {
+    // se não tem nada salvo, cria a ordem padrão uma vez
+    if (columnOrder.length === 0) {
+      const defaultOrder = table.getAllLeafColumns().map((c) => c.id);
+      setColumnOrder(defaultOrder);
+    }
+  }, [table, columnOrder.length, setColumnOrder]);
 
   // ✅ Atualiza produtos selecionados
   useEffect(() => {

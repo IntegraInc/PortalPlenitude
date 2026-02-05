@@ -56,14 +56,15 @@ import { toast } from "react-toastify";
 
 const COLUMN_ORDER_STORAGE_KEY = "main-table-column-order";
 
-export function useLocalStorage() {
+export function useLocalStorage(storageKey: string) {
  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => {
   if (typeof window === "undefined") return [];
   try {
-   const raw = localStorage.getItem(COLUMN_ORDER_STORAGE_KEY);
+   const raw = localStorage.getItem(storageKey);
    const parsed = raw ? JSON.parse(raw) : [];
    return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (error) {
+   console.error("Erro ao ler do localStorage:", error);
    return [];
   }
  });
@@ -75,12 +76,12 @@ export function useLocalStorage() {
    didMount.current = true;
    return;
   }
-  localStorage.setItem(COLUMN_ORDER_STORAGE_KEY, JSON.stringify(columnOrder));
+  localStorage.setItem(storageKey, JSON.stringify(columnOrder));
  }, [columnOrder]);
 
  const clearPersistedColumnOrder = () => {
   try {
-   window.localStorage.removeItem(COLUMN_ORDER_STORAGE_KEY);
+   window.localStorage.removeItem(storageKey);
    setColumnOrder([]);
    toast.success("Ordem das colunas resetada para o padrão!", {
     autoClose: 2000,
