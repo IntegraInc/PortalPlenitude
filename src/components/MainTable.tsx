@@ -114,7 +114,7 @@ export default function MainTable({ filters,
 
 
   const { columnOrder, setColumnOrder, clearPersistedColumnOrder } =
-    useLocalStorage();
+    useLocalStorage("plenitude:analysys:columnOrder");
   const hasMonths = monthKeys.length > 0;
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function MainTable({ filters,
     const dynamicIds = AVAILABLE_COLUMNS.map((c) => c.id);
     const allIds = Array.from(new Set([...baseIds, ...dynamicIds]));
 
-    setColumnOrder((prev) => {
+    setColumnOrder((prev: string[]) => {
       const prevArr = Array.isArray(prev) ? prev : [];
 
       // se tiver salvo, apenas saneia
@@ -152,7 +152,7 @@ export default function MainTable({ filters,
     setColumnVisibility,
     toggleColumnVisibility,
     resetColumnVisibility,
-  } = useColumnVisibility();
+  } = useColumnVisibility("plenitude:analysys:columnsVisibility");
 
   useEffect(() => {
     const ids = Array.from(

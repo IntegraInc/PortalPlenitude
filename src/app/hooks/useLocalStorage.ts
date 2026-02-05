@@ -2,14 +2,23 @@ import { ColumnOrderState } from "@tanstack/react-table";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-const COLUMN_ORDER_STORAGE_KEY = "main-table-column-order";
+// const COLUMN_ORDER_STORAGE_KEY = "main-table-column-order";
 
-export function useLocalStorage() {
- const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+export function useLocalStorage(storageKey: string) {
+ const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => {
+  if (typeof window === "undefined") return [];
+  try {
+   const saved = localStorage.getItem(storageKey);
+   const parsed = saved ? JSON.parse(saved) : [];
+   return Array.isArray(parsed) ? parsed : [];
+  } catch {
+   return [];
+  }
+ });
 
  const persistColumnOrder = (newOrder: ColumnOrderState) => {
   try {
-   localStorage.setItem(COLUMN_ORDER_STORAGE_KEY, JSON.stringify(newOrder));
+   localStorage.setItem(storageKey, JSON.stringify(newOrder));
   } catch (error) {
    console.error("Erro ao salvar ordem das colunas no localStorage:", error);
   }
@@ -17,7 +26,7 @@ export function useLocalStorage() {
 
  const getPersistedColumnOrder = (): ColumnOrderState | null => {
   try {
-   const saved = localStorage.getItem(COLUMN_ORDER_STORAGE_KEY);
+   const saved = localStorage.getItem(storageKey);
    return saved ? JSON.parse(saved) : null;
   } catch (error) {
    console.error(
@@ -30,7 +39,7 @@ export function useLocalStorage() {
 
  const clearPersistedColumnOrder = () => {
   try {
-   localStorage.removeItem(COLUMN_ORDER_STORAGE_KEY);
+   localStorage.removeItem(storageKey);
    setColumnOrder([]); // <<< deixa o MainTable normalizar e reconstruir com meses atuais
    toast.success("Ordem das colunas resetada para o padrão!", {
     autoClose: 2000,
