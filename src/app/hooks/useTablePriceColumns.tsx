@@ -391,12 +391,23 @@ export function useTablePriceColumns({
         enableSorting: true,
       },
       {
-        accessorKey: "capPercent",
-        id: "capPercent",
-        header: "% Capa",
+        accessorKey: "venCapPercent",
+        id: "venCapPercent",
+        header: "% Desc editora",
         cell: ({ row }) =>
-          row.original.capPercent != null
-            ? `${row.original.capPercent.toFixed(2)} %`
+          row.original.venCapPercent != null
+            ? `${row.original.venCapPercent.toFixed(2)} %`
+            : "-",
+        size: 90,
+        enableSorting: true,
+      },
+      {
+        accessorKey: "publisherPercentDiscount",
+        id: "publisherPercentDiscount",
+        header: "% Venda sobre Custo",
+        cell: ({ row }) =>
+          row.original.publisherPercentDiscount != null
+            ? `${row.original.publisherPercentDiscount.toFixed(2)} %`
             : "-",
         size: 90,
         enableSorting: true,
