@@ -47,7 +47,7 @@ export default function ClientAnalysis({
             if (familia) qs.set("family", familia);
             qs.set("limit", "1000");
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}analisys/all?${qs.toString()}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}analisys/all-2?${qs.toString()}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -63,8 +63,8 @@ export default function ClientAnalysis({
             startTransition(() => {
                 const uri = new URLSearchParams();
                 if (familia) uri.set("familia", familia);  // URL do front
-                uri.set("page", String(page));
-                uri.set("pageSize", String(pageSize));
+                // uri.set("page", String(page));
+                // uri.set("pageSize", String(pageSize));
                 router.replace(`${pathname}?${uri.toString()}`, { scroll: false });
             });
         } catch (e) {
