@@ -176,7 +176,7 @@ export default function OrderModal({
 
       if (result.responseJson.success) {
         toast.success(
-          `${result.responseJson.message} OC: ${result.responseJson.data.orderNumber}`,
+          `${result.responseJson.message} `,
           {
             autoClose: 5000,
           }

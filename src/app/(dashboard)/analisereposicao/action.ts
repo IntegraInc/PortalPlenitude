@@ -6,7 +6,7 @@ import { GetBearerToken } from "@/app/utils/getBearerToken";
 export default async function createBuyingOrder(body: any) {
  const bearerToken = await GetBearerToken();
  const response = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}analisys/buying-order`,
+  `${process.env.NEXT_PUBLIC_API_URL}analisys/buying-order-2`,
   {
    method: "post",
    body: JSON.stringify(body),
