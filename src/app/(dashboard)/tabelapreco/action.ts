@@ -6,7 +6,7 @@ import { GetBearerToken } from "@/app/utils/getBearerToken";
 export async function changePrice(body: any) {
  const bearerToken = await GetBearerToken();
  const response = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}}products/change-price`,
+  `${process.env.NEXT_PUBLIC_API_URL}products/change-price`,
   {
    method: "post",
    body: JSON.stringify(body),
