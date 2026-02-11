@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface TableFooterInfoProps {
   displayedItemsCount: number;
   selectedItemsCount: number;
@@ -17,15 +19,28 @@ export default function TableFooterInfo({
   showDragHint = true,
   className = "",
 }: TableFooterInfoProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className={`flex justify-between items-center mt-3 ${className}`}>
       {/* Informações de contagem */}
       <p className="text-xs text-gray-500">
-        {displayedItemsCount}{" "}
-        {displayedItemsCount === 1 ? "produto exibido" : "produtos exibidos"} •{" "}
-        {selectedItemsCount}{" "}
-        {selectedItemsCount === 1 ? "selecionado" : "selecionados"}
-        {hasCustomColumnOrder && " • Ordem das colunas personalizada"}
+        {!mounted ? (
+          // ✅ SSR e 1º render do client iguais -> evita hydration mismatch
+          "Carregando..."
+        ) : (
+          <>
+            {displayedItemsCount}{" "}
+            {displayedItemsCount === 1 ? "produto exibido" : "produtos exibidos"}{" "}
+            • {selectedItemsCount}{" "}
+            {selectedItemsCount === 1 ? "selecionado" : "selecionados"}
+            {hasCustomColumnOrder && " • Ordem das colunas personalizada"}
+          </>
+        )}
       </p>
 
       {/* Dica de uso - só mostra quando não está arrastando */}

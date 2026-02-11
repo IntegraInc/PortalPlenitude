@@ -223,15 +223,17 @@ export default function MainTable({ filters,
     isAllSelected,
     isSomeSelected,
     rowSelection,
-    orderQuantities: tableOrderQuantities, // Recebe as quantidades do hook
+    orderQuantities: tableOrderQuantities,
+    orderQtyTouched, // ✅ novo
   } = useTableColumns({
     filteredData: dataForTable,
     columnOrder,
     setColumnOrder,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    onOrderQuantitiesChange: setOrderQuantities, // ✅ Callback para atualizar as quantidades
+    onOrderQuantitiesChange: setOrderQuantities,
   });
+
 
 
   // ✅ EFFECT para atualizar os produtos selecionados quando o rowSelection mudar
@@ -307,22 +309,23 @@ export default function MainTable({ filters,
 
         // ✅ caso especial: Qtd. a Comprar (input)
         const isOrderQty =
-          col.id === "orderQuantity" ||
-          col.header === "Qtd. a Comprar";
+          col.id === "orderQuantity" || col.header === "Qtd. a Comprar";
 
         if (isOrderQty) {
-
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const key = String((row.original as any).productCode ?? "").trim();
 
-          const raw =
-            (orderQuantities && orderQuantities[key] != null
-              ? orderQuantities[key]
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              : (row.original as any).quantityToBuy) ?? 0;
+          const touched = !!orderQtyTouched?.[key];
 
-          const n = Number(raw);
-          value = Number.isFinite(n) ? n : 0;
+          if (!touched) {
+            // ✅ regra do cliente: se não passou no input, não exporta o espelho -> manda 0
+            value = 0;
+          } else {
+            // ✅ passou no input: exporta o valor aceito/digitado (se inválido -> 0)
+            const raw = orderQuantities?.[key] ?? 0;
+            const n = Number(raw);
+            value = Number.isFinite(n) ? n : 0;
+          }
         }
 
         obj[col.header] = value ?? "";
@@ -336,6 +339,7 @@ export default function MainTable({ filters,
     XLSX.utils.book_append_sheet(wb, ws, "Tabela");
     XLSX.writeFile(wb, "analise.xlsx");
   };
+
 
 
   // adicione logo antes do return:

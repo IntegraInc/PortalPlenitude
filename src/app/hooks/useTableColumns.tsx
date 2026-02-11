@@ -16,25 +16,47 @@ import {
 import { useMemo, useState, useCallback, useEffect } from "react";
 
 // ✅ Componente separado para o input de quantidade
+// ✅ Componente separado para o input de quantidade
 interface OrderQuantityInputProps {
   productCode: string;
+
+  // ✅ mantém o nome: aqui ele representa o "sugerido" vindo do backend
   initialQuantity: number;
+
+  // ✅ valor aceito/digitado (só vale quando touched=true)
+  value: number;
+
+  // ✅ se o user já passou pelo input
+  touched: boolean;
+
+  onTouched: (productCode: string) => void;
   onQuantityChange: (productCode: string, quantity: number) => void;
 }
 
 const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
   productCode,
   initialQuantity,
+  value,
+  touched,
+  onTouched,
   onQuantityChange,
 }) => {
-  const [localQuantity, setLocalQuantity] = useState<string>(
-    initialQuantity > 0 ? initialQuantity.toString() : ""
-  );
+  // ✅ mostra sugerido mesmo sem touched (apenas visual)
+  // ✅ quando touched=true, mostra o value aceito
+  const [localQuantity, setLocalQuantity] = useState<string>(() => {
+    if (touched) return value > 0 ? String(value) : "";
+    return initialQuantity > 0 ? String(initialQuantity) : "";
+  });
 
-  // Sincroniza quando a quantidade inicial muda externamente
+  // ✅ se o backend atualizar o sugerido e o user ainda não tocou, atualiza visual
+  // ✅ se já tocou, reflete o value aceito
   useEffect(() => {
-    setLocalQuantity(initialQuantity > 0 ? initialQuantity.toString() : "");
-  }, [initialQuantity]);
+    if (touched) {
+      setLocalQuantity(value > 0 ? String(value) : "");
+    } else {
+      setLocalQuantity(initialQuantity > 0 ? String(initialQuantity) : "");
+    }
+  }, [touched, value, initialQuantity]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -55,18 +77,24 @@ const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
 
       if (index >= 0 && index < inputs.length - 1) {
         inputs[index + 1].focus();
+      } else {
+        e.currentTarget.blur();
       }
     }
   };
 
   const handleBlur = () => {
-    const newQuantity = parseInt(localQuantity) || 0;
-    onQuantityChange(productCode, newQuantity);
+    // ✅ agora sim considera "aceito"
+    onTouched(productCode);
 
-    // Atualiza o estado local para refletir o valor formatado
-    if (newQuantity === 0) {
-      setLocalQuantity("");
-    }
+    const txt = String(localQuantity ?? "").trim();
+    const n = Number(txt);
+    const normalized = Number.isFinite(n) ? n : 0;
+
+    onQuantityChange(productCode, normalized);
+
+    if (normalized === 0) setLocalQuantity("");
+    else setLocalQuantity(String(normalized));
   };
 
   return (
@@ -76,10 +104,8 @@ const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
       data-qty-input="true"
       value={localQuantity}
       onChange={(e) => {
-        const value = e.target.value;
-        if (value === "" || /^\d+$/.test(value)) {
-          setLocalQuantity(value);
-        }
+        const v = e.target.value;
+        if (v === "" || /^\d+$/.test(v)) setLocalQuantity(v);
       }}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
@@ -87,6 +113,7 @@ const OrderQuantityInput: React.FC<OrderQuantityInputProps> = ({
     />
   );
 };
+
 
 interface UseTableColumnsProps {
   filteredData: Product[];
@@ -114,6 +141,9 @@ export function useTableColumns({
   const [orderQuantities, setOrderQuantities] = useState<
     Record<string, number>
   >({});
+  // ✅ State para armazenar quais inputs o usuário "passou" (tab/blur)
+  const [orderQtyTouched, setOrderQtyTouched] = useState<Record<string, boolean>>({});
+
 
   const handleColumnOrderChange: OnChangeFn<ColumnOrderState> = useCallback(
     (updaterOrValue) => {
@@ -145,19 +175,22 @@ export function useTableColumns({
     },
     [onOrderQuantitiesChange]
   );
+  const markOrderQtyTouched = useCallback((productCode: string) => {
+    setOrderQtyTouched((prev) => ({ ...prev, [productCode]: true }));
+  }, []);
+
 
   // ✅ Inicializa as quantidades com os valores padrão
+  // ✅ Inicializa: NÃO espelha sugerido. Começa vazio (0) e touched=false.
   useEffect(() => {
-    const initialQuantities: Record<string, number> = {};
-    filteredData.forEach((product) => {
-      initialQuantities[product.productCode] = product.quantityToBuy || 0;
-    });
-    setOrderQuantities(initialQuantities);
+    setOrderQuantities({});       // só entra aqui quando o user tocar
+    setOrderQtyTouched({});       // ninguém tocou ainda
 
     if (onOrderQuantitiesChange) {
-      onOrderQuantitiesChange(initialQuantities);
+      onOrderQuantitiesChange({}); // pai fica sabendo que não tem nada "aceito" ainda
     }
   }, [filteredData, onOrderQuantitiesChange]);
+
 
   // ✅ Helper: pega total do mês no produto
   const getMonthlySales = useCallback((product: Product, month: string) => {
@@ -420,13 +453,24 @@ export function useTableColumns({
         header: "Qtd. a Comprar",
         cell: ({ row }) => {
           const productCode = row.original.productCode;
-          const currentQuantity =
-            orderQuantities[productCode] ?? row.original.quantityToBuy ?? 0;
+
+          // sugerido sempre vem da linha
+          const suggested = row.original.quantityToBuy ?? 0;
+
+          const touched = !!orderQtyTouched[productCode];
+
+          // se tocou, usa o que está salvo; se não tocou, passa o sugerido pro blur aceitar
+          const currentQuantity = touched
+            ? (orderQuantities[productCode] ?? 0)
+            : (suggested ?? 0);
 
           return (
             <OrderQuantityInput
               productCode={productCode}
               initialQuantity={currentQuantity}
+              value={currentQuantity}
+              touched={touched}
+              onTouched={markOrderQtyTouched}
               onQuantityChange={updateOrderQuantity}
             />
           );
@@ -434,14 +478,17 @@ export function useTableColumns({
         size: 120,
         enableSorting: false,
       },
+
     ];
   }, [
     isAllSelected,
     isSomeSelected,
     toggleAllRowsSelection,
     orderQuantities,
+    orderQtyTouched,
+    markOrderQtyTouched,
     updateOrderQuantity,
-    monthColumns, // << só isso de novo aqui
+    monthColumns,
   ]);
 
   const table = useReactTable({
@@ -477,5 +524,6 @@ export function useTableColumns({
     sorting,
     setSorting,
     orderQuantities, // ✅ Retorna as quantidades para o componente pai
+    orderQtyTouched, // ✅ Retorna também quem foi "passado" no input
   };
 }
