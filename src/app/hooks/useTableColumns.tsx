@@ -455,7 +455,8 @@ export function useTableColumns({
           const productCode = row.original.productCode;
 
           // sugerido sempre vem da linha
-          const suggested = row.original.quantityToBuy ?? 0;
+          //por solicitação do Diogo, o quantidade a comprar sempre tem que vir zerado.
+          const suggested = 0;
 
           const touched = !!orderQtyTouched[productCode];
 
