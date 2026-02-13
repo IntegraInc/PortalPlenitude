@@ -1,16 +1,35 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { useNotificationsCtx } from "@/app/context/NotificationsContext";
 import { DestroyCookies } from "@/services/destroyCookies";
 import {
   FolderIcon,
   HomeIcon,
   ChartBarSquareIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
+import { Dialog } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-const navigation = [
+type NavItem = {
+  name: string;
+  href?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  disabled?: boolean;
+  onClick?: () => void;
+};
+
+const getNavigation = (toggleNotif: () => void): NavItem[] => [
+  {
+    name: "Notificações",
+    icon: BellIcon,
+    onClick: toggleNotif,
+    disabled: false,
+  },
   {
     name: "Tela inicial",
     href: "/",
@@ -38,8 +57,14 @@ function classNames(...classes: string[]) {
 export default function SidebarNavigation() {
   const pathname = usePathname();
   const router = useRouter();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+
+  const { unreadCount, notifications, markAsRead, markAllAsRead } =
+    useNotificationsCtx();
+
+  const [openNotif, setOpenNotif] = useState(false);
 
   const handleMouseEnter = () => {
     setIsHovering(true);
@@ -51,6 +76,11 @@ export default function SidebarNavigation() {
     setTimeout(() => setIsOpen(false), 100);
   };
 
+  const navigation = useMemo(
+    () => getNavigation(() => setOpenNotif((v) => !v)),
+    []
+  );
+
   return (
     <div
       className={classNames(
@@ -60,28 +90,22 @@ export default function SidebarNavigation() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Logo com transição suave */}
+      {/* Logo */}
       <div className="flex h-16 items-center justify-center overflow-hidden border-b border-gray-100 relative">
-        {/* Imagem pequena (sempre visível) */}
         <img
           src="/plenitudesemfundo.png"
           alt="Plenitude"
           className={classNames(
             "absolute transition-all duration-300 ease-in-out",
-            isOpen
-              ? "opacity-0 scale-50 rotate-90"
-              : "opacity-100 scale-100 rotate-0"
+            isOpen ? "opacity-0 scale-50 rotate-90" : "opacity-100 scale-100 rotate-0"
           )}
           style={{
             width: "32px",
             height: "32px",
-            transform: isOpen
-              ? "scale(0.5) rotate(90deg)"
-              : "scale(1) rotate(0deg)",
+            transform: isOpen ? "scale(0.5) rotate(90deg)" : "scale(1) rotate(0deg)",
           }}
         />
 
-        {/* Imagem grande (aparece quando aberto) */}
         <img
           src="/plenitude.jpg"
           alt="Plenitude"
@@ -100,13 +124,60 @@ export default function SidebarNavigation() {
       <nav className="flex flex-1 flex-col px-2 py-4">
         <ul role="list" className="space-y-1">
           {navigation.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (pathname.startsWith(item.href.split("?")[0]) &&
-                item.href !== "/");
+            const isLink = !!item.href;
+
+            // pathname não inclui querystring, então normaliza:
+            const baseHref = (item.href ?? "").split("?")[0];
+
+            const isActive = isLink
+              ? baseHref === "/"
+                ? pathname === "/"
+                : pathname === baseHref || pathname.startsWith(baseHref)
+              : openNotif;
+
+            const showBadge = item.name === "Notificações" && unreadCount > 0;
+
+            const commonClass = classNames(
+              isActive
+                ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 border-transparent",
+              "group w-full cursor-pointer flex items-center rounded-lg p-2 text-sm font-semibold transition-all duration-200 border",
+              isOpen ? "gap-x-3 justify-start" : "justify-center"
+            );
+
+            const Icon = item.icon;
+
+            const inner = (
+              <>
+                <span className="relative inline-flex">
+                  <Icon
+                    className={classNames(
+                      isActive
+                        ? "text-indigo-600"
+                        : "text-gray-400 group-hover:text-indigo-600",
+                      "h-5 w-5 shrink-0 transition-all duration-200"
+                    )}
+                  />
+                  {showBadge && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                  )}
+                </span>
+
+                <span
+                  className={classNames(
+                    "transition-all duration-300 ease-in-out whitespace-nowrap",
+                    isOpen
+                      ? "opacity-100 translate-x-0"
+                      : "opacity-0 -translate-x-2 absolute"
+                  )}
+                >
+                  {item.name}
+                </span>
+              </>
+            );
 
             return (
-              <li key={item.name}>
+              <li key={item.name} className="relative">
                 {item.disabled ? (
                   <div
                     className={classNames(
@@ -115,60 +186,32 @@ export default function SidebarNavigation() {
                     )}
                     title="Em breve"
                   >
-                    <item.icon
-                      className={classNames(
-                        "h-5 w-5 shrink-0 text-gray-300 transition-all duration-200"
-                      )}
-                    />
-                    <span
-                      className={classNames(
-                        "transition-all duration-300 ease-in-out whitespace-nowrap",
-                        isOpen
-                          ? "opacity-100 translate-x-0"
-                          : "opacity-0 -translate-x-2 absolute"
-                      )}
-                    >
-                      {item.name}
-                    </span>
+                    {inner}
                   </div>
-                ) : (
+                ) : isLink ? (
                   <Link
-                    href={item.href}
-                    className={classNames(
-                      isActive
-                        ? "bg-indigo-50 text-indigo-600 border-indigo-200"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 border-transparent",
-                      "group flex items-center rounded-lg p-2 text-sm font-semibold transition-all duration-200 border",
-                      isOpen ? "gap-x-3 justify-start" : "justify-center"
-                    )}
+                    href={item.href!}
+                    className={commonClass}
                     title={!isOpen ? item.name : ""}
                   >
-                    <item.icon
-                      className={classNames(
-                        isActive
-                          ? "text-indigo-600"
-                          : "text-gray-400 group-hover:text-indigo-600",
-                        "h-5 w-5 shrink-0 transition-all duration-200"
-                      )}
-                    />
-                    <span
-                      className={classNames(
-                        "transition-all duration-300 ease-in-out whitespace-nowrap",
-                        isOpen
-                          ? "opacity-100 translate-x-0"
-                          : "opacity-0 -translate-x-2 absolute"
-                      )}
-                    >
-                      {item.name}
-                    </span>
+                    {inner}
                   </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className={commonClass}
+                    title={!isOpen ? item.name : ""}
+                  >
+                    {inner}
+                  </button>
                 )}
               </li>
             );
           })}
         </ul>
 
-        {/* Botão Encerrar Sessão */}
+        {/* Encerrar sessão */}
         <button
           onClick={() => {
             DestroyCookies();
@@ -199,15 +242,113 @@ export default function SidebarNavigation() {
           <span
             className={classNames(
               "transition-all duration-300 ease-in-out whitespace-nowrap cursor-pointer",
-              isOpen
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-2 absolute"
+              isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 absolute"
             )}
           >
             Encerrar sessão
           </span>
         </button>
       </nav>
+
+      {/* MODAL CENTRAL - fora do sidebar */}
+      <Dialog
+        open={openNotif}
+        onClose={setOpenNotif}
+        className="relative z-[9999]"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-2xl rounded-2xl bg-white shadow-xl border overflow-hidden">
+            <div className="px-4 py-3 border-b flex items-center justify-between">
+              <div className="min-w-0">
+                <Dialog.Title className="text-base font-semibold">
+                  Notificações
+                </Dialog.Title>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {unreadCount > 0 ? `${unreadCount} novas` : "Nenhuma nova"}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                    onClick={async () => {
+                      await markAllAsRead();
+                      // se quiser fechar após marcar todas, descomenta:
+                      // setOpenNotif(false);
+                    }}
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+
+                <button
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                  onClick={() => setOpenNotif(false)}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-sm text-gray-500">
+                  Nenhuma notificação.
+                </div>
+              ) : (
+                <ul className="divide-y">
+                  {notifications.map((n) => (
+                    <li
+                      key={n.id}
+                      className={classNames(
+                        "p-4 flex items-start justify-between gap-4",
+                        !n.read ? "bg-green-50" : "bg-white"
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p
+                          className={classNames(
+                            "text-sm break-words",
+                            !n.read ? "font-semibold" : "text-gray-700"
+                          )}
+                        >
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(n.createdAt).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+
+                      {!n.read && (
+                        <button
+                          onClick={async () => {
+                            await markAsRead(n.id);
+                          }}
+                          className="text-xs text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
+                        >
+                          Marcar como lida
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="px-4 py-3 border-t flex items-center justify-end">
+              <button
+                onClick={() => setOpenNotif(false)}
+                className="px-3 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              >
+                Fechar
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }
