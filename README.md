@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛒 Portal Plenitude
 
-## Getting Started
+Sistema de gestão de compras com integração direta com ERP, permitindo que usuários gerem ordens de compra e realizem atualização de preços de produtos de forma centralizada.
 
-First, run the development server:
+---
+
+## 🚀 Problema
+
+Em muitos cenários corporativos, o processo de compras é descentralizado, manual e sujeito a erros — principalmente quando envolve atualização de preços e sincronização com sistemas ERP.
+
+Esse projeto resolve:
+
+- Falta de padronização na geração de ordens de compra
+- Atualização manual de preços no ERP
+- Risco de inconsistência entre sistemas
+
+---
+
+## 💡 Solução
+
+O Portal Plenitude atua como uma camada intermediária entre usuários e o ERP, garantindo:
+
+- Criação estruturada de ordens de compra
+- Atualização de preços integrada com o ERP
+- Centralização das operações de compra
+- Redução de erros operacionais
+
+---
+
+## 🏗️ Arquitetura
+
+O sistema é dividido em duas partes principais:
+
+### Frontend
+
+- Interface para gestão de compras
+- Visualização e manipulação de dados
+
+### Backend (API)
+
+- Responsável pela comunicação com o ERP
+- Processamento de regras de negócio
+- Integrações externas
+
+---
+
+## 🧰 Tecnologias Utilizadas
+
+### Frontend
+
+- ReactJS
+- NextJS
+- TanStack Table
+
+### Backend
+
+- Node.js (API)
+- Integrações com ERP (REST / SOAP)
+
+---
+
+## 🔗 Repositórios
+
+- Frontend: https://github.com/IntegraInc/PortalPlenitude
+- Backend: https://github.com/IntegraInc/integrainc-senior-api
+
+---
+
+## ⚙️ Funcionalidades
+
+- ✔️ Criação de ordens de compra
+- ✔️ Atualização de preços de produtos
+- ✔️ Integração com ERP
+- ✔️ Visualização tabular de dados (TanStack Table)
+- ✔️ Estrutura escalável para novas integrações
+
+---
+
+## 📈 Diferenciais Técnicos
+
+- Separação clara entre frontend e backend
+- Foco em integração com sistemas legados (ERP)
+- Arquitetura preparada para crescimento
+- Uso de ferramentas modernas para manipulação de dados
+
+---
+
+## ▶️ Como executar o projeto
+
+### Frontend
 
 ```bash
+cd PortalPlenitude
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Backend
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## É necessário acessar o repositorio integrainc-senior-api
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+cd integrainc-senior-api
+npm install
+npm run dev
+```
