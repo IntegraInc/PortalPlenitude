@@ -57,7 +57,7 @@ const BASE_AVAILABLE_COLUMNS = [
   { id: "physicalStock", header: "Estoque Físico" },
   { id: "stockTurnover", header: "Dias Estoque" },
   { id: "lastPurchaseDate", header: "Última Compra" },
-  { id: "quantityToBuy", header: "Quantidade Sugerida" },
+  { id: "purchaseSuggestion", header: "Quantidade Sugerida" },
   { id: "totalSales", header: "Vendas Total" },
   { id: "average6Months", header: "Média venda mês" },
   { id: "orderQuantity", header: "Qtd. a Comprar" },

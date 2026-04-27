@@ -402,16 +402,16 @@ export function useTableColumns({
         enableSorting: true,
       },
       {
-        accessorKey: "quantityToBuy",
-        id: "quantityToBuy",
+        accessorKey: "purchaseSuggestion",
+        id: "purchaseSuggestion",
         header: () => (
           <span className="whitespace-nowrap">
             Qtd. <br /> Sugerida
           </span>
         ),
         cell: ({ row }) =>
-          row.original.quantityToBuy != null &&
-          row.original.quantityToBuy.toString(),
+          row.original.purchaseSuggestion != null &&
+          row.original.purchaseSuggestion.toString(),
         size: 160,
         enableSorting: true,
       },
